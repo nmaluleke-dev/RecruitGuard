@@ -45,7 +45,7 @@ public class JsUi {
         return new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(new Date(ts));
     }
 
-    
+
     public static View row(LayoutInflater inf, ViewGroup parent, String badge, int color,
                            String title, String sub) {
         View v = inf.inflate(R.layout.js_row, parent, false);
