@@ -10,6 +10,9 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class SignUpActivity extends AppCompatActivity
 {
@@ -34,7 +37,6 @@ public class SignUpActivity extends AppCompatActivity
         "What street did you grow up on?",
         "What is your favorite book?"
     };
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -75,7 +77,6 @@ public class SignUpActivity extends AppCompatActivity
                 String securityQuestion = securityQuestionSpinner.getSelectedItem().toString();
                 String securityAnswer = securityAnswerInput.getText().toString().trim();
 
-
                 // Validation 1: Check for empty fields
                 if (name.isEmpty())
                 {
@@ -99,7 +100,8 @@ public class SignUpActivity extends AppCompatActivity
                     return;
                 }
 
-                if (password.isEmpty()) {
+                if (password.isEmpty())
+                {
                     passwordInput.setError("Password is required");
                     passwordInput.requestFocus();
                     return;
@@ -108,17 +110,16 @@ public class SignUpActivity extends AppCompatActivity
                 // Validation 3: Check password length
                 if (password.length() < 6)
                 {
-                    passwordInput.setError("Password must be at least 6 characters");
-                    passwordInput.requestFocus();
-                    return;
+                   passwordInput.setError("Password must be at least 6 characters");
+                   passwordInput.requestFocus();
+                   return;
                 }
 
-                if(securityQuestionSpinner.getSelectedItemPosition() == 0)
+                if (securityQuestionSpinner.getSelectedItemPosition() == 0)
                 {
                     Toast.makeText(SignUpActivity.this, "Please select a security question", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
 
                 if (securityAnswer.isEmpty())
                 {
@@ -127,12 +128,49 @@ public class SignUpActivity extends AppCompatActivity
                     return;
                 }
 
-                // TODO: Call API
-                Toast.makeText(SignUpActivity.this, "Successfully registered!", Toast.LENGTH_SHORT).show();
+                //Call API
+                RegisterRequest request = new RegisterRequest(
+                        name,
+                        email,
+                        password,
+                        "job_seeker",
+                        securityQuestion,
+                        securityAnswer
+                );
 
-                // Go to Sign In after successful registration
-                startActivity(new Intent(SignUpActivity.this, SignInActivity.class));
-                finish();
+                ApiService apiService = ApiClient.getService();
+                Call<AuthResponse> call = apiService.register(request);
+
+                call.enqueue(new retrofit2.Callback<AuthResponse>()
+                {
+                    @Override
+                    public void onResponse(Call<AuthResponse> call, retrofit2.Response<AuthResponse> response)
+                    {
+                        if (response.isSuccessful() && response.body() != null)
+                        {
+                            // Success message
+                            Toast.makeText(SignUpActivity.this, "Successfully registered!", Toast.LENGTH_SHORT).show();
+
+                            //TODO: Save to SharedPreferences
+                            saveToSharedPreferences(response.body());
+
+                            // TODO: Go to Sign In or Home based on role
+                            navigateBasedOnRole(response.body().getRole());
+                        }
+                        else
+                        {
+                            // Error Message
+                            Toast.makeText(SignUpActivity.this, "Registration failed. Email may already exist.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<AuthResponse> call, Throwable t)
+                    {
+                        // Network error
+                        Toast.makeText(SignUpActivity.this, "Network error. Check connection.", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
 
@@ -152,5 +190,30 @@ public class SignUpActivity extends AppCompatActivity
     private boolean isValidEmail(String email)
     {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    }
+
+    private void saveToSharedPreferences(AuthResponse auth)
+    {
+         android.content.SharedPreferences prefs = getSharedPreferences("RecruitGuardPrefs", MODE_PRIVATE);
+         android.content.SharedPreferences.Editor editor = prefs.edit();
+         editor.putString("token", auth.getToken());
+         editor.putString("role", auth.getRole());
+         editor.putString("name", auth.getName());
+         editor.putInt("userId", auth.getUserId());
+         editor.apply();
+    }
+
+    private void navigateBasedOnRole(String role)
+    {
+        if ("admin".equals(role))
+        {
+            // TODO: Go to Admin Dashboard when Bile builds it
+            Toast.makeText(this, "Admin login", Toast.LENGTH_SHORT).show();
+        }
+        else
+        {
+            // TODO: Go to Home when Tanaka builds it
+            Toast.makeText(this, "Job Seeker", Toast.LENGTH_SHORT).show();
+        }
     }
 }

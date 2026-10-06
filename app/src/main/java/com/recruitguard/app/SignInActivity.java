@@ -8,6 +8,9 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class SignInActivity extends AppCompatActivity
 {
@@ -53,20 +56,60 @@ public class SignInActivity extends AppCompatActivity
                     return;
                 }
 
-                if (!isValidEmail(email)) {
+                if (!isValidEmail(email))
+                {
                     emailInput.setError("Please enter a valid email address");
                     emailInput.requestFocus();
                     return;
                 }
 
-                if (password.isEmpty()) {
+                if (password.isEmpty())
+                {
                     passwordInput.setError("Password is required");
                     passwordInput.requestFocus();
                     return;
                 }
 
-                // TODO: Call API
-                Toast.makeText(SignInActivity.this, "Successfully signed in!", Toast.LENGTH_SHORT).show();
+                LoginRequest request = new LoginRequest(email, password);
+
+                ApiService apiService = ApiClient.getService();
+                Call<AuthResponse> call = apiService.login(request);
+
+                call.enqueue(new Callback<AuthResponse>()
+                {
+                    @Override
+                    public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response)
+                    {
+                        if (response.isSuccessful() && response.body() != null)
+                        {
+                            AuthResponse auth = response.body();
+                            Toast.makeText(SignInActivity.this, "Welcome " + auth.getName() + "!", Toast.LENGTH_SHORT).show();
+
+                            // Save to SharedPreferences
+                            android.content.SharedPreferences prefs = getSharedPreferences("RecruitGuardPrefs", MODE_PRIVATE);
+                            android.content.SharedPreferences.Editor editor = prefs.edit();
+                            editor.putString("token", auth.getToken());
+                            editor.putString("role", auth.getRole());
+                            editor.putString("name", auth.getName());
+                            editor.putInt("userId", auth.getUserId());
+                            editor.apply();
+
+                            // TODO: Role-based routing
+
+
+                        }
+                        else
+                        {
+                            Toast.makeText(SignInActivity.this, "Invalid email or password", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<AuthResponse> call, Throwable t)
+                    {
+                        Toast.makeText(SignInActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
 

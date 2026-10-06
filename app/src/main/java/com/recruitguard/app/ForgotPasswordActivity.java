@@ -13,6 +13,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import android.graphics.Color;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ForgotPasswordActivity extends AppCompatActivity
 {
@@ -62,7 +65,7 @@ public class ForgotPasswordActivity extends AppCompatActivity
         confirmPasswordInput = findViewById(R.id.confirmPasswordInput);
         resetPasswordButton = findViewById(R.id.resetPasswordButton);
 
-        // Spinner with questions (it is disabled by default)
+        // Spinner setup (keep this)
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, securityQuestions)
         {
             @Override
@@ -70,7 +73,6 @@ public class ForgotPasswordActivity extends AppCompatActivity
             {
                 View view = super.getView(position, convertView, parent);
                 TextView text = (TextView) view.findViewById(android.R.id.text1);
-
                 text.setTextColor(Color.parseColor("#FFFFFF"));
                 text.setTextSize(14);
                 text.setTypeface(null, Typeface.BOLD);
@@ -91,7 +93,7 @@ public class ForgotPasswordActivity extends AppCompatActivity
         securityQuestionSpinner.setAdapter(adapter);
         securityQuestionSpinner.setEnabled(false);
 
-        // Verify Email button
+        // TODO: VERIFY EMAIL BUTTON
         verifyEmailButton.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -113,24 +115,57 @@ public class ForgotPasswordActivity extends AppCompatActivity
                     return;
                 }
 
-                // TODO: Call API to check if email exists and get security question
-                emailInput.setEnabled(false);
-                verifyEmailButton.setEnabled(false);
-                verifyEmailButton.setText("Verified");
-                securitySection.setVisibility(View.VISIBLE);
-                securityQuestionSpinner.setSelection(0);
+                // Call API to verify email exists and get security question
+                VerifyEmailRequest request = new VerifyEmailRequest(email);
+                ApiService apiService = ApiClient.getService();
 
-                // TODO: Remove this (demo)
-                Toast.makeText(ForgotPasswordActivity.this, "Email verified", Toast.LENGTH_SHORT).show();
+                apiService.getSecurityQuestion(request).enqueue(new Callback<SecurityQuestionResponse>()
+                {
+                    @Override
+                    public void onResponse(Call<SecurityQuestionResponse> call, Response<SecurityQuestionResponse> response)
+                    {
+                        if (response.isSuccessful() && response.body() != null)
+                        {
+                            String question = response.body().getQuestion();
+
+                            emailInput.setEnabled(false);
+                            verifyEmailButton.setEnabled(false);
+                            verifyEmailButton.setText("Verified");
+
+                            securitySection.setVisibility(View.VISIBLE);
+
+                            for (int i = 0; i < securityQuestions.length; i++)
+                            {
+                                if (securityQuestions[i].equals(question))
+                                {
+                                    securityQuestionSpinner.setSelection(i);
+                                    break;
+                                }
+                            }
+                            Toast.makeText(ForgotPasswordActivity.this, "Email verified! Please answer your security question.", Toast.LENGTH_SHORT).show();
+                        }
+                        else
+                        {
+                            Toast.makeText(ForgotPasswordActivity.this, "Email not registered in our system.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<SecurityQuestionResponse> call, Throwable t)
+                    {
+                        Toast.makeText(ForgotPasswordActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
 
-        // Reset Password button
+        // RESET PASSWORD BUTTON - ONLY THIS ONE (API version)
         resetPasswordButton.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
+                String email = emailInput.getText().toString().trim();
                 String answer = securityAnswerInput.getText().toString().trim();
                 String newPass = newPasswordInput.getText().toString().trim();
                 String confirmPass = confirmPasswordInput.getText().toString().trim();
@@ -163,14 +198,36 @@ public class ForgotPasswordActivity extends AppCompatActivity
                     return;
                 }
 
-                // Show success message and go to Sign In screen
-                Toast.makeText(ForgotPasswordActivity.this,"Password reset successfully!", Toast.LENGTH_SHORT).show();
+                // Call API to reset password
+                ResetPasswordRequest request = new ResetPasswordRequest(email, answer, newPass);
+                ApiService apiService = ApiClient.getService();
 
-                Intent intent = new Intent(ForgotPasswordActivity.this, SignInActivity.class);
-                //If the user clicks back from sign in they will exit the app rather than return to the forgot password screen.
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-                finish();
+                apiService.resetPassword(request).enqueue(new Callback<Void>()
+                {
+                    @Override
+                    public void onResponse(Call<Void> call, Response<Void> response)
+                    {
+                        if (response.isSuccessful())
+                        {
+                            Toast.makeText(ForgotPasswordActivity.this, "Password reset successfully!", Toast.LENGTH_SHORT).show();
+
+                            Intent intent = new Intent(ForgotPasswordActivity.this, SignInActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+                            finish();
+                        }
+                        else
+                        {
+                            Toast.makeText(ForgotPasswordActivity.this, "Incorrect security answer. Please try again.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<Void> call, Throwable t)
+                    {
+                        Toast.makeText(ForgotPasswordActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
     }
