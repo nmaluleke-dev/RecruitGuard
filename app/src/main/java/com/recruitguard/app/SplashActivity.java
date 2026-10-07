@@ -45,7 +45,6 @@ public class SplashActivity extends AppCompatActivity
                 // startActivity(new Intent(this, AdminDashboardActivity.class));
             } else {
                 // TODO: Replace with Home Screen when Tanaka builds it
-                // For now, just show message or go to Sign In as placeholder
                 android.widget.Toast.makeText(this, "Welcome back " + prefs.getString("name", ""), android.widget.Toast.LENGTH_SHORT).show();
                 // startActivity(new Intent(this, HomeActivity.class));
             }
