@@ -58,7 +58,7 @@ public class ResultActivity extends AppCompatActivity {
 
         Button review = findViewById(R.id.js_review_btn);
         review.setEnabled(!r.reviewRequested);
-        review.setText(r.reviewRequested ? "Review Requested ✓" : "Request Human Review");
+        review.setText(r.reviewRequested ? "Review Requested " : "Request Human Review");
     }
 
     private void showFraudAlert() {
