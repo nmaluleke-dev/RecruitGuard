@@ -2,8 +2,6 @@ package com.recruitguard.app.jobseeker;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
@@ -45,13 +43,19 @@ public class HomeActivity extends AppCompatActivity {
 
             scanBtn.setEnabled(false);
             progress.setVisibility(View.VISIBLE);
-            // TODO: replace this delay with the backend call
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                ScanScore.get().scan(value, type);
-                progress.setVisibility(View.GONE);
-                scanBtn.setEnabled(true);
-                startActivity(new Intent(this, ResultActivity.class));
-            }, 1200);
+
+            ScanScore.get().scan(value, type, new ScanScore.Callback() {
+                @Override public void onSuccess(ScanScore.Result r) {
+                    progress.setVisibility(View.GONE);
+                    scanBtn.setEnabled(true);
+                    startActivity(new Intent(HomeActivity.this, ResultActivity.class));
+                }
+                @Override public void onError(String message) {
+                    progress.setVisibility(View.GONE);
+                    scanBtn.setEnabled(true);
+                    Toast.makeText(HomeActivity.this, message, Toast.LENGTH_LONG).show();
+                }
+            });
         });
     }
 

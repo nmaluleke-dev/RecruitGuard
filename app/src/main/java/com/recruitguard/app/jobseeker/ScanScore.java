@@ -1,11 +1,29 @@
 package com.recruitguard.app.jobseeker;
 
 import android.graphics.Color;
+import android.os.Handler;
+import android.os.Looper;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ScanScore {
+
+    // Emulator ->
+    private static final String BASE_URL = "http://10.0.2.2:8080";
+    // user that exists in the backend database until login is built
+    private static final int USER_ID = 1;
+
     public enum Risk { LOW, MEDIUM, HIGH }
 
     public static class Hit {
@@ -17,17 +35,25 @@ public class ScanScore {
     }
 
     public static class Result {
-        public final String input, type;
+        public final String input, type, riskLevel, decision;
         public final int score;
         public final List<Hit> hits;
         public final long time;
         public boolean reviewRequested;
 
-        Result(String input, String type, int score, List<Hit> hits) {
+        Result(String input, String type, int score, String riskLevel, String decision, List<Hit> hits) {
             this.input = input; this.type = type; this.score = score;
+            this.riskLevel = riskLevel; this.decision = decision;
             this.hits = hits; this.time = System.currentTimeMillis();
         }
-        public Risk risk() { return score >= 70 ? Risk.HIGH : score >= 40 ? Risk.MEDIUM : Risk.LOW; }
+
+        public Risk risk() {
+            String l = riskLevel == null ? "" : riskLevel.toUpperCase(Locale.ROOT);
+            if (l.contains("HIGH")) return Risk.HIGH;
+            if (l.contains("MED")) return Risk.MEDIUM;
+            if (l.contains("LOW")) return Risk.LOW;
+            return score >= 70 ? Risk.HIGH : score >= 40 ? Risk.MEDIUM : Risk.LOW;
+        }
         public String label() {
             switch (risk()) {
                 case HIGH: return "High Risk";
@@ -51,6 +77,11 @@ public class ScanScore {
         Note(String title, String message) { this.title = title; this.message = message; }
     }
 
+    public interface Callback {
+        void onSuccess(Result r);
+        void onError(String message);
+    }
+
     private static final ScanScore INSTANCE = new ScanScore();
     public static ScanScore get() { return INSTANCE; }
 
@@ -59,41 +90,87 @@ public class ScanScore {
     public Result current;
     public boolean pendingAlert;
 
-    // Placeholder rules - swap for the team's real detection API.
-    public Result scan(String input, String type) {
-        String t = input.toLowerCase(Locale.ROOT);
+    private final ExecutorService io = Executors.newSingleThreadExecutor();
+    private final Handler main = new Handler(Looper.getMainLooper());
+
+    /** Calls POST /api/scan/submit on the backend. Callback runs on the main thread. */
+    public void scan(final String input, final String type, final Callback cb) {
+        io.execute(() -> {
+            try {
+                JSONObject body = new JSONObject();
+                body.put("userId", USER_ID);
+                body.put("scanType", type.toUpperCase(Locale.ROOT)); // confirm accepted values with backend
+                body.put("content", input);
+
+                HttpURLConnection c = (HttpURLConnection) new URL(BASE_URL + "/api/scan/submit").openConnection();
+                c.setRequestMethod("POST");
+                c.setConnectTimeout(10000);
+                c.setReadTimeout(20000);
+                c.setRequestProperty("Content-Type", "application/json");
+                c.setDoOutput(true);
+                try (OutputStream os = c.getOutputStream()) {
+                    os.write(body.toString().getBytes(StandardCharsets.UTF_8));
+                }
+
+                final int code = c.getResponseCode();
+                boolean ok = code >= 200 && code < 300;
+                final String text = read(ok ? c.getInputStream() : c.getErrorStream());
+                c.disconnect();
+
+                if (!ok) {
+                    final String err = text.isEmpty() ? "Server error " + code : text;
+                    main.post(() -> cb.onError(err));
+                    return;
+                }
+
+                final Result r = parse(text, input, type);
+                main.post(() -> {
+                    addResult(r);
+                    cb.onSuccess(r);
+                });
+            } catch (Exception e) {
+                final String msg = "Could not reach server: " + e.getMessage();
+                main.post(() -> cb.onError(msg));
+            }
+        });
+    }
+
+    private Result parse(String text, String input, String type) throws Exception {
+        JSONObject o = new JSONObject(text);
         List<Hit> hits = new ArrayList<>();
+        JSONArray arr = o.optJSONArray("flaggedIndicators");
+        if (arr != null) {
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject h = arr.getJSONObject(i);
+                hits.add(new Hit(h.optString("indicatorType"), h.optString("description"), h.optInt("points")));
+            }
+        }
+        return new Result(input, type, o.optInt("riskScore"), o.optString("riskLevel", ""),
+                o.optString("systemDecision", ""), hits);
+    }
 
-        if (hasAny(t, "registration fee", "pay a fee", "deposit", "training fee", "western union", "send money"))
-            hits.add(new Hit("Upfront payment", "Asks for a fee, deposit or registration payment.", 35));
-        if (hasAny(t, "guaranteed income", "earn $", "earn r", "no experience needed", "easy money"))
-            hits.add(new Hit("Unrealistic pay", "Promises high earnings with little effort.", 20));
-        if (hasAny(t, "urgent", "apply now", "limited slots", "immediately"))
-            hits.add(new Hit("Urgency pressure", "Pushes you to act immediately.", 15));
-        if (hasAny(t, "whatsapp", "telegram", "@gmail.com", "@yahoo.com"))
-            hits.add(new Hit("Informal contact channel", "Uses WhatsApp/Telegram or a free email for hiring.", 20));
-        if (hasAny(t, "bit.ly", "tinyurl", "http://"))
-            hits.add(new Hit("Suspicious link", "Shortened or non-secure link.", 15));
-        if (type.equals("Text") && t.length() < 80)
-            hits.add(new Hit("Too little detail", "Posting is very short and lacks company info.", 10));
-
-        int score = 0;
-        for (Hit h : hits) score += h.points;
-        score = Math.min(score, 100);
-
-        Result r = new Result(input, type, score, hits);
+    private void addResult(Result r) {
         history.add(0, r);
         current = r;
         if (r.risk() == Risk.HIGH) {
             pendingAlert = true;
-            notes.add(0, new Note("High-risk posting detected", "Scan scored " + score + "/100."));
+            notes.add(0, new Note("High-risk posting detected", "Scan scored " + r.score + "/100."));
         }
-        return r;
+    }
+
+    private String read(InputStream is) throws Exception {
+        if (is == null) return "";
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        byte[] buf = new byte[4096];
+        int n;
+        while ((n = is.read(buf)) != -1) out.write(buf, 0, n);
+        is.close();
+        return out.toString("UTF-8");
     }
 
     public void requestReview() {
         if (current == null) return;
-        current.reviewRequested = true; // TODO: POST to backend
+        current.reviewRequested = true; // local only for now - no review endpoint yet
         notes.add(0, new Note("Review requested", "A human reviewer will check this posting."));
     }
 
@@ -101,10 +178,5 @@ public class ScanScore {
         int n = 0;
         for (Note x : notes) if (!x.read) n++;
         return n;
-    }
-
-    private boolean hasAny(String t, String... keys) {
-        for (String k : keys) if (t.contains(k)) return true;
-        return false;
     }
 }
