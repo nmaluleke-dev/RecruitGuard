@@ -19,9 +19,9 @@ import java.util.concurrent.Executors;
 
 public class ScanScore {
 
-    // Emulator ->
+
     private static final String BASE_URL = "http://10.0.2.2:8080";
-    // user that exists in the backend database until login is built
+    // Must be a user that exists in the backend database until login is built
     private static final int USER_ID = 1;
 
     public enum Risk { LOW, MEDIUM, HIGH }
@@ -52,7 +52,7 @@ public class ScanScore {
             if (l.contains("HIGH")) return Risk.HIGH;
             if (l.contains("MED")) return Risk.MEDIUM;
             if (l.contains("LOW")) return Risk.LOW;
-            return score >= 70 ? Risk.HIGH : score >= 40 ? Risk.MEDIUM : Risk.LOW;
+            return score >= 50 ? Risk.HIGH : Risk.LOW;
         }
         public String label() {
             switch (risk()) {
@@ -99,7 +99,7 @@ public class ScanScore {
             try {
                 JSONObject body = new JSONObject();
                 body.put("userId", USER_ID);
-                body.put("scanType", type.toUpperCase(Locale.ROOT)); // confirm accepted values with backend
+                body.put("scanType", type.toLowerCase(Locale.ROOT)); // backend enum: text, url
                 body.put("content", input);
 
                 HttpURLConnection c = (HttpURLConnection) new URL(BASE_URL + "/api/scan/submit").openConnection();
@@ -142,11 +142,18 @@ public class ScanScore {
         if (arr != null) {
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject h = arr.getJSONObject(i);
-                hits.add(new Hit(h.optString("indicatorType"), h.optString("description"), h.optInt("points")));
+                hits.add(new Hit(pretty(h.optString("indicatorType")),
+                        h.optString("description"), h.optInt("points")));
             }
         }
         return new Result(input, type, o.optInt("riskScore"), o.optString("riskLevel", ""),
                 o.optString("systemDecision", ""), hits);
+    }
+
+    private String pretty(String s) {
+        if (s == null || s.isEmpty()) return "";
+        s = s.replace('_', ' ');
+        return Character.toUpperCase(s.charAt(0)) + s.substring(1);
     }
 
     private void addResult(Result r) {
@@ -170,7 +177,7 @@ public class ScanScore {
 
     public void requestReview() {
         if (current == null) return;
-        current.reviewRequested = true; // local only for now - no review endpoint yet
+        current.reviewRequested = true; // local only - backend has no review endpoint yet
         notes.add(0, new Note("Review requested", "A human reviewer will check this posting."));
     }
 
