@@ -25,34 +25,45 @@ public class SplashActivity extends AppCompatActivity
             @Override
             public void run()
             {
+                // Always go to Sign In (manual login every time)
                 startActivity(new Intent(SplashActivity.this, SignInActivity.class));
                 finish();
             }
         }, 2000);
     }
+}
 
-    private void checkLoginStatus() {
+/*
+    private void checkLoginStatus()
+    {
         // Get saved session
         SharedPreferences prefs = getSharedPreferences("RecruitGuardPrefs", MODE_PRIVATE);
         String token = prefs.getString("token", null);
         String role = prefs.getString("role", null);
 
-        if (token != null && !token.isEmpty()) {
+        if (token != null && !token.isEmpty())
+        {
             // User is logged in, so go to appropriate screen based on role
-            if ("admin".equals(role)) {
+            if ("admin".equals(role))
+            {
                 // TODO: Replace with Admin Dashboard when Bile builds it
-                android.widget.Toast.makeText(this, "Welcome back Admin!", android.widget.Toast.LENGTH_SHORT).show();
+                Utils.showToast(this, "Welcome back Admin!");
                 // startActivity(new Intent(this, AdminDashboardActivity.class));
-            } else {
+            }
+            else
+            {
                 // TODO: Replace with Home Screen when Tanaka builds it
-                android.widget.Toast.makeText(this, "Welcome back " + prefs.getString("name", ""), android.widget.Toast.LENGTH_SHORT).show();
+                Utils.showToast(this, "Welcome back " + prefs.getString("name", "") + "!");
                 // startActivity(new Intent(this, HomeActivity.class));
             }
-        } else {
+        }
+        else
+        {
             // Not logged in - go to Sign In
             startActivity(new Intent(SplashActivity.this, SignInActivity.class));
         }
 
         finish();
     }
-}
+
+ */

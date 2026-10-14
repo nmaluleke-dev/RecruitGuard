@@ -65,7 +65,7 @@ public class ForgotPasswordActivity extends AppCompatActivity
         confirmPasswordInput = findViewById(R.id.confirmPasswordInput);
         resetPasswordButton = findViewById(R.id.resetPasswordButton);
 
-        // Spinner setup (keep this)
+        // Spinner with questions (disabled)
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, securityQuestions)
         {
             @Override
@@ -93,6 +93,93 @@ public class ForgotPasswordActivity extends AppCompatActivity
         securityQuestionSpinner.setAdapter(adapter);
         securityQuestionSpinner.setEnabled(false);
 
+
+        // Password visibility toggle for New Password
+        newPasswordInput.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View v, android.view.MotionEvent event)
+            {
+                if (event.getAction() == android.view.MotionEvent.ACTION_UP)
+                {
+                    int drawableEndWidth = newPasswordInput.getCompoundPaddingEnd();
+                    if (event.getX() >= (newPasswordInput.getWidth() - drawableEndWidth))
+                    {
+                        int selectionStart = newPasswordInput.getSelectionStart();
+                        int selectionEnd = newPasswordInput.getSelectionEnd();
+
+                        if (newPasswordInput.getTransformationMethod() instanceof android.text.method.PasswordTransformationMethod)
+                        {
+                            // Show Password & Switch to Eye Off Icon
+                            newPasswordInput.setTransformationMethod(null);
+                            newPasswordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_off, 0);
+                        }
+                        else
+                        {
+                            // Hide Password & Switch to Open Eye Icon
+                            newPasswordInput.setTransformationMethod(android.text.method.PasswordTransformationMethod.getInstance());
+                            newPasswordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_open, 0);
+                        }
+
+                        newPasswordInput.setSelection(selectionStart, selectionEnd);
+                        newPasswordInput.performClick();
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+
+        // Password visibility toggle for Confirm Password
+        confirmPasswordInput.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View v, android.view.MotionEvent event)
+            {
+                if (event.getAction() == android.view.MotionEvent.ACTION_UP)
+                {
+                    int drawableEndWidth = confirmPasswordInput.getCompoundPaddingEnd();
+                    if (event.getX() >= (confirmPasswordInput.getWidth() - drawableEndWidth))
+                    {
+                        int selectionStart = confirmPasswordInput.getSelectionStart();
+                        int selectionEnd = confirmPasswordInput.getSelectionEnd();
+
+                        if (confirmPasswordInput.getTransformationMethod() instanceof android.text.method.PasswordTransformationMethod)
+                        {
+                            // Show Password & Switch to Eye Off Icon
+                            confirmPasswordInput.setTransformationMethod(null);
+                            confirmPasswordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_off, 0);
+                        }
+                        else
+                        {
+                            // Hide Password & Switch to Open Eye Icon
+                            confirmPasswordInput.setTransformationMethod(android.text.method.PasswordTransformationMethod.getInstance());
+                            confirmPasswordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_open, 0);
+                        }
+
+                        confirmPasswordInput.setSelection(selectionStart, selectionEnd);
+                        confirmPasswordInput.performClick();
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+        /*
+
         // TODO: VERIFY EMAIL BUTTON
         verifyEmailButton.setOnClickListener(new View.OnClickListener()
         {
@@ -115,7 +202,36 @@ public class ForgotPasswordActivity extends AppCompatActivity
                     return;
                 }
 
+                // For verify button:
+                new android.os.Handler().postDelayed(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        emailInput.setEnabled(false);
+                        verifyEmailButton.setEnabled(false);
+                        verifyEmailButton.setText("Verified");
+                        securitySection.setVisibility(View.VISIBLE);
+                        securityQuestionSpinner.setSelection(0); // First question
+                        Utils.showToast(ForgotPasswordActivity.this, "Email verified!");
+                    }
+                }, 1000);
+
+                // For reset button:
+                new android.os.Handler().postDelayed(new Runnable()
+                {
+                    @Override
+                    public void run() {
+                        Utils.showToast(ForgotPasswordActivity.this, "Password reset successfully!");
+                        startActivity(new Intent(ForgotPasswordActivity.this, SignInActivity.class));
+                        finish();
+                    }
+                }, 1000);
+
+
+                //TODO: PUT BACK AFTER DEMO
                 // Call API to verify email exists and get security question
+
                 VerifyEmailRequest request = new VerifyEmailRequest(email);
                 ApiService apiService = ApiClient.getService();
 
@@ -128,38 +244,49 @@ public class ForgotPasswordActivity extends AppCompatActivity
                         {
                             String question = response.body().getQuestion();
 
+                            //Disable email editing
                             emailInput.setEnabled(false);
                             verifyEmailButton.setEnabled(false);
                             verifyEmailButton.setText("Verified");
 
                             securitySection.setVisibility(View.VISIBLE);
 
-                            for (int i = 0; i < securityQuestions.length; i++)
+                            // Set security question. Just displays the text and disables the spinner.
+                            securityQuestionSpinner.post(new Runnable()
                             {
-                                if (securityQuestions[i].equals(question))
+                                @Override
+                                public void run()
                                 {
-                                    securityQuestionSpinner.setSelection(i);
-                                    break;
+                                    TextView spinnerText = (TextView) securityQuestionSpinner.getChildAt(0);
+                                    if(spinnerText != null)
+                                    {
+                                        spinnerText.setText(question);
+                                        spinnerText.setTextColor(Color.parseColor("#333333"));
+                                        spinnerText.setTextSize(16);
+                                    }
                                 }
-                            }
-                            Toast.makeText(ForgotPasswordActivity.this, "Email verified! Please answer your security question.", Toast.LENGTH_SHORT).show();
+                            });
+                            Utils.showToast(ForgotPasswordActivity.this, "Email verified! Please answer your security question.");
                         }
                         else
                         {
-                            Toast.makeText(ForgotPasswordActivity.this, "Email not registered in our system.", Toast.LENGTH_SHORT).show();
+                            Utils.showToast(ForgotPasswordActivity.this, "Email not registered in our system.");
                         }
                     }
 
                     @Override
                     public void onFailure(Call<SecurityQuestionResponse> call, Throwable t)
                     {
-                        Toast.makeText(ForgotPasswordActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        Utils.showToast(ForgotPasswordActivity.this, "Network error: " + t.getMessage());
                     }
                 });
+
+
             }
         });
 
-        // RESET PASSWORD BUTTON - ONLY THIS ONE (API version)
+
+        // Reset Password Button (API version)
         resetPasswordButton.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -209,7 +336,7 @@ public class ForgotPasswordActivity extends AppCompatActivity
                     {
                         if (response.isSuccessful())
                         {
-                            Toast.makeText(ForgotPasswordActivity.this, "Password reset successfully!", Toast.LENGTH_SHORT).show();
+                            Utils.showToast(ForgotPasswordActivity.this, "Password reset successfully!");
 
                             Intent intent = new Intent(ForgotPasswordActivity.this, SignInActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -218,16 +345,110 @@ public class ForgotPasswordActivity extends AppCompatActivity
                         }
                         else
                         {
-                            Toast.makeText(ForgotPasswordActivity.this, "Incorrect security answer. Please try again.", Toast.LENGTH_SHORT).show();
+                            Utils.showToast(ForgotPasswordActivity.this, "Incorrect security answer. Please try again.");
                         }
                     }
 
                     @Override
                     public void onFailure(Call<Void> call, Throwable t)
                     {
-                        Toast.makeText(ForgotPasswordActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        Utils.showToast(ForgotPasswordActivity.this, "Network error: " + t.getMessage());
                     }
                 });
+            }
+        });
+
+         */
+
+
+        //TODO:REMOVE AFTER DEMO
+        verifyEmailButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                String email = emailInput.getText().toString().trim();
+
+                if (email.isEmpty())
+                {
+                    emailInput.setError("Email is required");
+                    emailInput.requestFocus();
+                    return;
+                }
+
+                if (!isValidEmail(email))
+                {
+                    emailInput.setError("Please enter a valid email");
+                    emailInput.requestFocus();
+                    return;
+                }
+
+                new android.os.Handler().postDelayed(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        emailInput.setEnabled(false);
+                        verifyEmailButton.setEnabled(false);
+                        verifyEmailButton.setText("Verified");
+                        securitySection.setVisibility(View.VISIBLE);
+                        securityQuestionSpinner.setSelection(0);
+                        Utils.showToast(ForgotPasswordActivity.this, "Email verified!");
+                    }
+                }, 1000);
+            }
+        });
+
+        // FAKE RESET PASSWORD FOR HOME TESTING
+        resetPasswordButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                String answer = securityAnswerInput.getText().toString().trim();
+                String newPass = newPasswordInput.getText().toString().trim();
+                String confirmPass = confirmPasswordInput.getText().toString().trim();
+
+                if (answer.isEmpty())
+                {
+                    securityAnswerInput.setError("Answer is required");
+                    securityAnswerInput.requestFocus();
+                    return;
+                }
+
+                if (newPass.isEmpty())
+                {
+                    newPasswordInput.setError("New password is required");
+                    newPasswordInput.requestFocus();
+                    return;
+                }
+
+                if (newPass.length() < 6)
+                {
+                    newPasswordInput.setError("Password must be at least 6 characters");
+                    newPasswordInput.requestFocus();
+                    return;
+                }
+
+                if (!newPass.equals(confirmPass))
+                {
+                    confirmPasswordInput.setError("Passwords do not match");
+                    confirmPasswordInput.requestFocus();
+                    return;
+                }
+
+                new android.os.Handler().postDelayed(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        Utils.showToast(ForgotPasswordActivity.this, "Password reset successfully!");
+                        Intent intent = new Intent(ForgotPasswordActivity.this, SignInActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                        finish();
+                    }
+                }, 1000);
             }
         });
     }
@@ -237,3 +458,5 @@ public class ForgotPasswordActivity extends AppCompatActivity
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
 }
+
+

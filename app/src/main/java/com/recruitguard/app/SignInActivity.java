@@ -39,6 +39,45 @@ public class SignInActivity extends AppCompatActivity
         signUpLink = findViewById(R.id.signUpLink);
         forgotPasswordLink = findViewById(R.id.forgotPasswordLink);
 
+        // Password visibility toggle
+        passwordInput.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View v, android.view.MotionEvent event)
+            {
+                if (event.getAction() == android.view.MotionEvent.ACTION_UP)
+                {
+                    // Check if the click is on the drawableEnd icon
+                    int drawableEndWidth = passwordInput.getCompoundPaddingEnd();
+                    if (event.getX() >= (passwordInput.getWidth() - drawableEndWidth))
+                    {
+
+                        int selectionStart = passwordInput.getSelectionStart();
+                        int selectionEnd = passwordInput.getSelectionEnd();
+
+                        if (passwordInput.getTransformationMethod() instanceof android.text.method.PasswordTransformationMethod)
+                        {
+                            // Show Password & Switch to Eye Off Icon
+                            passwordInput.setTransformationMethod(null);
+                            passwordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_off, 0);
+                        }
+                        else
+                        {
+                            // Hide Password & Switch to Open Eye Icon
+                            passwordInput.setTransformationMethod(android.text.method.PasswordTransformationMethod.getInstance());
+                            passwordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_open, 0);
+                        }
+
+                        // Restore cursor position
+                        passwordInput.setSelection(selectionStart, selectionEnd);
+                        passwordInput.performClick();
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+
         // Sign In button click
         signInButton.setOnClickListener(new View.OnClickListener()
         {
@@ -72,6 +111,29 @@ public class SignInActivity extends AppCompatActivity
 
                 LoginRequest request = new LoginRequest(email, password);
 
+                //TODO:TEMP
+                new android.os.Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Fake successful login
+                        Utils.showToast(SignInActivity.this, "Welcome Test User!");
+
+                        // Save fake data to SharedPreferences
+                        android.content.SharedPreferences prefs = getSharedPreferences("RecruitGuardPrefs", MODE_PRIVATE);
+                        android.content.SharedPreferences.Editor editor = prefs.edit();
+                        editor.putString("token", "fake-token-123");
+                        editor.putString("role", "job_seeker");
+                        editor.putString("name", "Test User");
+                        editor.putInt("userId", 1);
+                        editor.apply();
+
+                        // startActivity(new Intent(SignInActivity.this, HomeActivity.class));
+                    }
+                }, 1000);
+
+
+                //TODO: PUT BACK AFTER DEMO
+                /*
                 ApiService apiService = ApiClient.getService();
                 Call<AuthResponse> call = apiService.login(request);
 
@@ -83,8 +145,7 @@ public class SignInActivity extends AppCompatActivity
                         if (response.isSuccessful() && response.body() != null)
                         {
                             AuthResponse auth = response.body();
-                            Toast.makeText(SignInActivity.this, "Welcome " + auth.getName() + "!", Toast.LENGTH_SHORT).show();
-
+                            Utils.showToast(SignInActivity.this, "Welcome " + auth.getName() + "!");
                             // Save to SharedPreferences
                             android.content.SharedPreferences prefs = getSharedPreferences("RecruitGuardPrefs", MODE_PRIVATE);
                             android.content.SharedPreferences.Editor editor = prefs.edit();
@@ -100,16 +161,18 @@ public class SignInActivity extends AppCompatActivity
                         }
                         else
                         {
-                            Toast.makeText(SignInActivity.this, "Invalid email or password", Toast.LENGTH_SHORT).show();
+                            Utils.showToast(SignInActivity.this, "Invalid email or password");
                         }
                     }
 
                     @Override
                     public void onFailure(Call<AuthResponse> call, Throwable t)
                     {
-                        Toast.makeText(SignInActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        Utils.showToast(SignInActivity.this, "Network error: " + t.getMessage());
                     }
                 });
+
+                 */
             }
         });
 

@@ -59,6 +59,45 @@ public class SignUpActivity extends AppCompatActivity
         signUpButton = findViewById(R.id.signUpButton);
         signInLink = findViewById(R.id.signInLink);
 
+        // Password visibility toggle
+        passwordInput.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View v, android.view.MotionEvent event)
+            {
+                if (event.getAction() == android.view.MotionEvent.ACTION_UP)
+                {
+                    // Check if the click is on the drawableEnd icon
+                    int drawableEndWidth = passwordInput.getCompoundPaddingEnd();
+                    if (event.getX() >= (passwordInput.getWidth() - drawableEndWidth))
+                    {
+
+                        int selectionStart = passwordInput.getSelectionStart();
+                        int selectionEnd = passwordInput.getSelectionEnd();
+
+                        if (passwordInput.getTransformationMethod() instanceof android.text.method.PasswordTransformationMethod)
+                        {
+                            // Show Password & Switch to Eye Off Icon
+                            passwordInput.setTransformationMethod(null);
+                            passwordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_off, 0);
+                        }
+                        else
+                        {
+                            // Hide Password & Switch to Open Eye Icon
+                            passwordInput.setTransformationMethod(android.text.method.PasswordTransformationMethod.getInstance());
+                            passwordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_open, 0);
+                        }
+
+                        // Restore cursor position
+                        passwordInput.setSelection(selectionStart, selectionEnd);
+                        passwordInput.performClick();
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+
         // Setup spinner with white text (editable)
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, securityQuestions);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -78,56 +117,58 @@ public class SignUpActivity extends AppCompatActivity
                 String securityAnswer = securityAnswerInput.getText().toString().trim();
 
                 // Validation 1: Check for empty fields
-                if (name.isEmpty())
-                {
+                if (name.isEmpty()) {
                     nameInput.setError("Name is required");
                     nameInput.requestFocus();
                     return;
                 }
 
-                if (email.isEmpty())
-                {
+                if (email.isEmpty()) {
                     emailInput.setError("Email is required");
                     emailInput.requestFocus();
                     return;
                 }
 
                 // Validation 2: Check email format
-                if (!isValidEmail(email))
-                {
+                if (!isValidEmail(email)) {
                     emailInput.setError("Please enter a valid email address");
                     emailInput.requestFocus();
                     return;
                 }
 
-                if (password.isEmpty())
-                {
+                if (password.isEmpty()) {
                     passwordInput.setError("Password is required");
                     passwordInput.requestFocus();
                     return;
                 }
 
                 // Validation 3: Check password length
-                if (password.length() < 6)
-                {
-                   passwordInput.setError("Password must be at least 6 characters");
-                   passwordInput.requestFocus();
-                   return;
-                }
-
-                if (securityQuestionSpinner.getSelectedItemPosition() == 0)
-                {
-                    Toast.makeText(SignUpActivity.this, "Please select a security question", Toast.LENGTH_SHORT).show();
+                if (password.length() < 6) {
+                    passwordInput.setError("Password must be at least 6 characters");
+                    passwordInput.requestFocus();
                     return;
                 }
 
-                if (securityAnswer.isEmpty())
-                {
+                if (securityQuestionSpinner.getSelectedItemPosition() == 0) {
+                    Utils.showToast(SignUpActivity.this, "Please select a security question");
+                    return;
+                }
+
+                if (securityAnswer.isEmpty()) {
                     securityAnswerInput.setError("Security answer is required");
                     securityAnswerInput.requestFocus();
                     return;
                 }
 
+                //TODO: TEMP
+
+                        Utils.showToast(SignUpActivity.this, "Successfully registered!");
+                        startActivity(new Intent(SignUpActivity.this, SignInActivity.class));
+                        finish();
+
+
+                //TODO: PUT BACK AFTER DEMO
+                /*
                 //Call API
                 RegisterRequest request = new RegisterRequest(
                         name,
@@ -149,18 +190,15 @@ public class SignUpActivity extends AppCompatActivity
                         if (response.isSuccessful() && response.body() != null)
                         {
                             // Success message
-                            Toast.makeText(SignUpActivity.this, "Successfully registered!", Toast.LENGTH_SHORT).show();
+                            Utils.showToast(SignUpActivity.this, "Successfully registered!");
 
-                            //TODO: Save to SharedPreferences
-                            saveToSharedPreferences(response.body());
-
-                            // TODO: Go to Sign In or Home based on role
-                            navigateBasedOnRole(response.body().getRole());
+                            startActivity(new Intent(SignUpActivity.this, SignInActivity.class));
+                            finish();
                         }
                         else
                         {
                             // Error Message
-                            Toast.makeText(SignUpActivity.this, "Registration failed. Email may already exist.", Toast.LENGTH_SHORT).show();
+                            Utils.showToast(SignUpActivity.this, "Registration failed. Email may already exist.");
                         }
                     }
 
@@ -168,9 +206,9 @@ public class SignUpActivity extends AppCompatActivity
                     public void onFailure(Call<AuthResponse> call, Throwable t)
                     {
                         // Network error
-                        Toast.makeText(SignUpActivity.this, "Network error. Check connection.", Toast.LENGTH_SHORT).show();
+                        Utils.showToast(SignUpActivity.this, "Network error. Check connection.");
                     }
-                });
+                }); */
             }
         });
 
@@ -192,28 +230,4 @@ public class SignUpActivity extends AppCompatActivity
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
 
-    private void saveToSharedPreferences(AuthResponse auth)
-    {
-         android.content.SharedPreferences prefs = getSharedPreferences("RecruitGuardPrefs", MODE_PRIVATE);
-         android.content.SharedPreferences.Editor editor = prefs.edit();
-         editor.putString("token", auth.getToken());
-         editor.putString("role", auth.getRole());
-         editor.putString("name", auth.getName());
-         editor.putInt("userId", auth.getUserId());
-         editor.apply();
-    }
-
-    private void navigateBasedOnRole(String role)
-    {
-        if ("admin".equals(role))
-        {
-            // TODO: Go to Admin Dashboard when Bile builds it
-            Toast.makeText(this, "Admin login", Toast.LENGTH_SHORT).show();
-        }
-        else
-        {
-            // TODO: Go to Home when Tanaka builds it
-            Toast.makeText(this, "Job Seeker", Toast.LENGTH_SHORT).show();
-        }
-    }
 }
