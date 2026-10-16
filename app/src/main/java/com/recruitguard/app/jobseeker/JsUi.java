@@ -18,7 +18,9 @@ import java.util.Locale;
 
 public class JsUi {
 
+
     public static void setupNav(final Activity a, final int selectedId) {
+        ScanScore.init(a);
         BottomNavigationView nav = a.findViewById(R.id.js_bottom_nav);
         nav.setOnItemSelectedListener(null);
         nav.setSelectedItemId(selectedId);

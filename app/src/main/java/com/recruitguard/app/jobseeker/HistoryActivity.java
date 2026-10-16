@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.recruitguard.app.R;
@@ -20,7 +21,14 @@ public class HistoryActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         JsUi.setupNav(this, R.id.js_nav_history);
+        render();
+        ScanScore.get().loadHistory(error -> {
+            if (error != null) Toast.makeText(this, error, Toast.LENGTH_LONG).show();
+            else render();
+        });
+    }
 
+    private void render() {
         LinearLayout list = findViewById(R.id.js_list);
         list.removeAllViews();
         findViewById(R.id.js_empty).setVisibility(

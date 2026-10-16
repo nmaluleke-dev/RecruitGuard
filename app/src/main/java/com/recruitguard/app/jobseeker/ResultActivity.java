@@ -48,7 +48,8 @@ public class ResultActivity extends AppCompatActivity {
         hits.removeAllViews();
         if (r.hits.isEmpty()) {
             TextView none = new TextView(this);
-            none.setText("No suspicious rules triggered.");
+            none.setText(r.fromHistory ? "Rule details aren't available for past scans."
+                    : "No suspicious rules triggered.");
             hits.addView(none);
         } else {
             for (ScanScore.Hit h : r.hits) {

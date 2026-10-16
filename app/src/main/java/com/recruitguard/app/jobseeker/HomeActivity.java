@@ -63,5 +63,6 @@ public class HomeActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         JsUi.setupNav(this, R.id.js_nav_scan);
+        ScanScore.get().loadNotifications(error -> JsUi.setupNav(this, R.id.js_nav_scan));
     }
 }
