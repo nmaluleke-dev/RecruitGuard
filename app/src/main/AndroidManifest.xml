@@ -26,6 +26,11 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".AdminDashboardActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
         <activity android:name=".jobseeker.HomeActivity" android:exported="false" />
         <activity android:name=".jobseeker.ResultActivity" android:exported="false" />
         <activity android:name=".jobseeker.HistoryActivity" android:exported="false" />

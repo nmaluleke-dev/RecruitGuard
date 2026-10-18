@@ -1,7 +1,8 @@
 package com.recruitguard.app;
 
+import android.content.Intent;
 import android.os.Bundle;
-
+import android.widget.Button;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -20,5 +21,15 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        //navigating to Admin Dashboard
+       Button btnOpenAdmin = findViewById(R.id.btnOpenAdminDashboard);
+        if (btnOpenAdmin != null) {
+            btnOpenAdmin.setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, AdminDashboardActivity.class);
+                startActivity(intent);
+            });
+        }
     }
-}
+} 
+  
