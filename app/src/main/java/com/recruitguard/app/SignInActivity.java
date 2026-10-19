@@ -111,29 +111,6 @@ public class SignInActivity extends AppCompatActivity
 
                 LoginRequest request = new LoginRequest(email, password);
 
-                //TODO:TEMP
-                new android.os.Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        // Fake successful login
-                        Utils.showToast(SignInActivity.this, "Welcome Test User!");
-
-                        // Save fake data to SharedPreferences
-                        android.content.SharedPreferences prefs = getSharedPreferences("RecruitGuardPrefs", MODE_PRIVATE);
-                        android.content.SharedPreferences.Editor editor = prefs.edit();
-                        editor.putString("token", "fake-token-123");
-                        editor.putString("role", "job_seeker");
-                        editor.putString("name", "Test User");
-                        editor.putInt("userId", 1);
-                        editor.apply();
-
-                        // startActivity(new Intent(SignInActivity.this, HomeActivity.class));
-                    }
-                }, 1000);
-
-
-                //TODO: PUT BACK AFTER DEMO
-                /*
                 ApiService apiService = ApiClient.getService();
                 Call<AuthResponse> call = apiService.login(request);
 
@@ -155,8 +132,20 @@ public class SignInActivity extends AppCompatActivity
                             editor.putInt("userId", auth.getUserId());
                             editor.apply();
 
+                            /*
                             // TODO: Role-based routing
-
+                            if ("admin".equals(auth.getRole()))
+                            {
+                                // Go to Admin Dashboard
+                                startActivity(new Intent(SignInActivity.this, AdminDashboardActivity.class));
+                            }
+                            else
+                            {
+                                //Go to Job Seeker Home
+                                startActivity(new Intent(SignInActivity.this, com.recruitguard.app.jobseeker.HomeActivity.class));
+                            }
+                            finish();
+                            */
 
                         }
                         else
@@ -171,8 +160,6 @@ public class SignInActivity extends AppCompatActivity
                         Utils.showToast(SignInActivity.this, "Network error: " + t.getMessage());
                     }
                 });
-
-                 */
             }
         });
 

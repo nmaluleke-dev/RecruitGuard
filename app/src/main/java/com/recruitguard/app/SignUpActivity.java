@@ -1,6 +1,7 @@
 package com.recruitguard.app;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -98,8 +99,29 @@ public class SignUpActivity extends AppCompatActivity
             }
         });
 
-        // Setup spinner with white text (editable)
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, securityQuestions);
+        // Setup spinner with security questions (editable)
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, securityQuestions)
+        {
+            @Override
+            public View getView(int position, View convertView, android.view.ViewGroup parent)
+            {
+                View view = super.getView(position, convertView, parent);
+                TextView text = (TextView) view.findViewById(android.R.id.text1);
+                text.setTextColor(Color.BLACK);
+                text.setTextSize(16);
+                return view;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, android.view.ViewGroup parent)
+                {
+                View view = super.getDropDownView(position, convertView, parent);
+                TextView text = (TextView) view.findViewById(android.R.id.text1);
+                text.setTextColor(Color.WHITE);
+                return view;
+            }
+        };
+
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         securityQuestionSpinner.setAdapter(adapter);
         securityQuestionSpinner.setEnabled(true);
@@ -160,22 +182,16 @@ public class SignUpActivity extends AppCompatActivity
                     return;
                 }
 
-                //TODO: TEMP
 
-                        Utils.showToast(SignUpActivity.this, "Successfully registered!");
-                        startActivity(new Intent(SignUpActivity.this, SignInActivity.class));
-                        finish();
-
-
-                //TODO: PUT BACK AFTER DEMO
-                /*
                 //Call API
+                int  questionIndex = securityQuestionSpinner.getSelectedItemPosition();
+
                 RegisterRequest request = new RegisterRequest(
                         name,
                         email,
                         password,
                         "job_seeker",
-                        securityQuestion,
+                        String.valueOf(questionIndex),
                         securityAnswer
                 );
 
@@ -208,7 +224,7 @@ public class SignUpActivity extends AppCompatActivity
                         // Network error
                         Utils.showToast(SignUpActivity.this, "Network error. Check connection.");
                     }
-                }); */
+                });
             }
         });
 
@@ -229,5 +245,4 @@ public class SignUpActivity extends AppCompatActivity
     {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
-
 }
