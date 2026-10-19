@@ -184,8 +184,27 @@ public class SignInActivity extends AppCompatActivity
         });
     }
 
+    // Email validation helper method
     private boolean isValidEmail(String email)
     {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
+        // Check basic format first
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches())
+        {
+            return false;
+        }
+
+        // Check for valid domain extensions
+        String[] validDomains = {".com", ".co.za", ".org", ".net", ".ac.za", ".gov.za", ".edu"};
+        boolean hasValidDomain = false;
+
+        for (String domain : validDomains)
+        {
+            if (email.toLowerCase().endsWith(domain))
+            {
+                hasValidDomain = true;
+                break;
+            }
+        }
+        return hasValidDomain;
     }
 }

@@ -139,46 +139,61 @@ public class SignUpActivity extends AppCompatActivity
                 String securityAnswer = securityAnswerInput.getText().toString().trim();
 
                 // Validation 1: Check for empty fields
-                if (name.isEmpty()) {
+                if (name.isEmpty())
+                {
                     nameInput.setError("Name is required");
                     nameInput.requestFocus();
                     return;
                 }
 
-                if (email.isEmpty()) {
+                if (email.isEmpty())
+                {
                     emailInput.setError("Email is required");
                     emailInput.requestFocus();
                     return;
                 }
 
-                // Validation 2: Check email format
-                if (!isValidEmail(email)) {
-                    emailInput.setError("Please enter a valid email address");
-                    emailInput.requestFocus();
-                    return;
-                }
-
-                if (password.isEmpty()) {
+                if (password.isEmpty())
+                {
                     passwordInput.setError("Password is required");
                     passwordInput.requestFocus();
                     return;
                 }
 
-                // Validation 3: Check password length
-                if (password.length() < 6) {
+                if (securityAnswer.isEmpty())
+                {
+                    securityAnswerInput.setError("Security answer is required");
+                    securityAnswerInput.requestFocus();
+                    return;
+                }
+                //Validation 2: Check name validity
+                if(!name.matches("[a-zA-Z]+$"))
+                {
+                    nameInput.setError("Name must only contain letters and spaces");
+                    nameInput.requestFocus();
+                    return;
+                }
+
+                // Validation 3: Check email format
+                if (!isValidEmail(email))
+                {
+                    emailInput.setError("Please enter a valid email address");
+                    emailInput.requestFocus();
+                    return;
+                }
+
+                // Validation 4: Check password length
+                if (password.length() < 6)
+                {
                     passwordInput.setError("Password must be at least 6 characters");
                     passwordInput.requestFocus();
                     return;
                 }
 
-                if (securityQuestionSpinner.getSelectedItemPosition() == 0) {
+                //Validation 5: Check is security question is selected and answer is not empty (default)
+                if (securityQuestionSpinner.getSelectedItemPosition() == 0)
+                {
                     Utils.showToast(SignUpActivity.this, "Please select a security question");
-                    return;
-                }
-
-                if (securityAnswer.isEmpty()) {
-                    securityAnswerInput.setError("Security answer is required");
-                    securityAnswerInput.requestFocus();
                     return;
                 }
 
@@ -243,6 +258,24 @@ public class SignUpActivity extends AppCompatActivity
     // Email validation helper method
     private boolean isValidEmail(String email)
     {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
+        // Check basic format first
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches())
+        {
+            return false;
+        }
+
+        // Check for valid domain extensions
+        String[] validDomains = {".com", ".co.za", ".org", ".net", ".ac.za", ".gov.za", ".edu"};
+        boolean hasValidDomain = false;
+
+        for (String domain : validDomains)
+        {
+            if (email.toLowerCase().endsWith(domain))
+            {
+                hasValidDomain = true;
+                break;
+            }
+        }
+        return hasValidDomain;
     }
 }
