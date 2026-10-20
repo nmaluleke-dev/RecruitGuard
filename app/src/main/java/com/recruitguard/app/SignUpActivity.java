@@ -207,7 +207,7 @@ public class SignUpActivity extends AppCompatActivity
                         email,
                         password,
                         "job_seeker",
-                        String.valueOf(questionIndex),
+                        questionIndex,
                         securityAnswer
                 );
 

@@ -6,10 +6,10 @@ public class RegisterRequest
     private String email;
     private String password;
     private String role;
-    private String securityQuestion;
+    private Integer securityQuestion;
     private String securityAnswer;
 
-    public RegisterRequest(String name, String email, String password, String role, String securityQuestion, String securityAnswer)
+    public RegisterRequest(String name, String email, String password, String role, Integer securityQuestion, String securityAnswer)
     {
         this.name = name;
         this.email = email;
