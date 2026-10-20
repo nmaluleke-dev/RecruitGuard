@@ -5,7 +5,7 @@ public class RegisterRequest {
     private String email;
     private String password;
     private String role;
-    private String securityQuestion;
+    private Integer securityQuestion;
     private String securityAnswer;
 
     public String getName() { return name; }
@@ -20,8 +20,8 @@ public class RegisterRequest {
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
 
-    public String getSecurityQuestion() { return securityQuestion; }
-    public void setSecurityQuestion(String securityQuestion) { this.securityQuestion = securityQuestion; }
+    public Integer getSecurityQuestion() { return securityQuestion; }
+    public void setSecurityQuestion(Integer q) { this.securityQuestion = q; }
 
     public String getSecurityAnswer() { return securityAnswer; }
     public void setSecurityAnswer(String securityAnswer) { this.securityAnswer = securityAnswer; }
