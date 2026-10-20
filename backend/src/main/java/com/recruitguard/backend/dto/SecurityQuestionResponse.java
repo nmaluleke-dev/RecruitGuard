@@ -1,11 +1,11 @@
 package com.recruitguard.backend.dto;
 
 public class SecurityQuestionResponse {
-    private String securityQuestion;
+    private Integer securityQuestion;
 
-    public SecurityQuestionResponse(String securityQuestion) {
+    public SecurityQuestionResponse(Integer securityQuestion) {
         this.securityQuestion = securityQuestion;
     }
 
-    public String getSecurityQuestion() { return securityQuestion; }
+    public Integer getSecurityQuestion() { return securityQuestion; }
 }
