@@ -117,7 +117,8 @@ public class SignUpActivity extends AppCompatActivity
                 {
                 View view = super.getDropDownView(position, convertView, parent);
                 TextView text = (TextView) view.findViewById(android.R.id.text1);
-                text.setTextColor(Color.WHITE);
+                text.setTextColor(Color.BLACK);
+                text.setBackgroundColor(Color.WHITE);
                 return view;
             }
         };
