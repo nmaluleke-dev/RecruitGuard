@@ -1,6 +1,7 @@
 package com.recruitguard.app.jobseeker;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.Looper;
@@ -16,9 +17,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -39,7 +42,7 @@ public class ScanScore {
 
     public static class Result {
         public final int postingId;
-        public final String input, type, riskLevel, decision;
+        public final String input, type, riskLevel;
         public final int score;
         public final List<Hit> hits;
         public final long time;
@@ -47,10 +50,10 @@ public class ScanScore {
         public boolean reviewRequested;
 
         Result(int postingId, String input, String type, int score, String riskLevel,
-               String decision, List<Hit> hits, long time, boolean fromHistory) {
+               List<Hit> hits, long time, boolean fromHistory) {
             this.postingId = postingId; this.input = input; this.type = type;
-            this.score = score; this.riskLevel = riskLevel; this.decision = decision;
-            this.hits = hits; this.time = time; this.fromHistory = fromHistory;
+            this.score = score; this.riskLevel = riskLevel; this.hits = hits;
+            this.time = time; this.fromHistory = fromHistory;
         }
 
         public Risk risk() {
@@ -71,18 +74,35 @@ public class ScanScore {
             switch (risk()) {
                 case HIGH: return Color.parseColor("#D32F2F");
                 case MEDIUM: return Color.parseColor("#F9A825");
-                default: return Color.parseColor("#388E3C");
+                default: return Color.parseColor("#2E9E44");
             }
+        }
+        public String typeLabel() { return type.equals("URL") ? "URL Scan" : "Text Scan"; }
+
+        // The backend sends no job title, so build one from the content
+        public String title() {
+            String s = input == null ? "" : input.trim();
+            if (type.equals("URL")) {
+                s = s.replaceFirst("(?i)^https?://", "").replaceFirst("(?i)^www\\.", "");
+                int slash = s.indexOf('/');
+                String host = slash > 0 ? s.substring(0, slash) : s;
+                return host.isEmpty() ? "Job link" : host;
+            }
+            s = s.replaceAll("\\s+", " ");
+            if (s.isEmpty()) return "Job posting";
+            if (s.length() <= 36) return s;
+            int cut = s.lastIndexOf(' ', 36);
+            return s.substring(0, cut > 10 ? cut : 36) + "...";
         }
     }
 
     public static class Note {
-        public final int id; 
-        public final String title, message;
+        public final int id, postingId;
+        public final String message;
         public final long time;
         public boolean read;
-        Note(int id, String title, String message, long time, boolean read) {
-            this.id = id; this.title = title; this.message = message;
+        Note(int id, int postingId, String message, long time, boolean read) {
+            this.id = id; this.postingId = postingId; this.message = message;
             this.time = time; this.read = read;
         }
     }
@@ -110,7 +130,9 @@ public class ScanScore {
     public Result current;
     public boolean pendingAlert;
 
-    private final Set<Integer> readIds = new HashSet<>(); // notifications tapped as read
+    private final Map<Integer, Result> session = new HashMap<>();   // scans made in this app run (have rule details)
+    private final Map<Integer, String> reviews = new HashMap<>();   // postingId -> admin review message
+    private final Set<Integer> readIds = new HashSet<>();           // notifications opened (local only)
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final Handler main = new Handler(Looper.getMainLooper());
 
@@ -119,14 +141,20 @@ public class ScanScore {
 
     public static void init(Context c) { appCtx = c.getApplicationContext(); }
 
-    public static int userId() {
-        if (appCtx == null) return 1;
-        return appCtx.getSharedPreferences("RecruitGuardPrefs", Context.MODE_PRIVATE).getInt("userId", 1);
+    private static SharedPreferences prefs() {
+        return appCtx == null ? null : appCtx.getSharedPreferences("RecruitGuardPrefs", Context.MODE_PRIVATE);
     }
-
+    public static int userId() {
+        SharedPreferences p = prefs();
+        return p == null ? 1 : p.getInt("userId", 1);
+    }
+    public static String userName() {
+        SharedPreferences p = prefs();
+        return p == null ? "" : p.getString("name", "");
+    }
     public static String token() {
-        if (appCtx == null) return "";
-        return appCtx.getSharedPreferences("RecruitGuardPrefs", Context.MODE_PRIVATE).getString("token", "");
+        SharedPreferences p = prefs();
+        return p == null ? "" : p.getString("token", "");
     }
 
     /* ---------- SCAN: POST /api/scan/submit ---------- */
@@ -183,17 +211,14 @@ public class ScanScore {
             }
         }
         return new Result(o.optInt("postingId"), input, type, o.optInt("riskScore"),
-                o.optString("riskLevel", ""), o.optString("systemDecision", ""),
-                hits, System.currentTimeMillis(), false);
+                o.optString("riskLevel", ""), hits, System.currentTimeMillis(), false);
     }
 
     private void addResult(Result r) {
         history.add(0, r);
+        session.put(r.postingId, r);
         current = r;
-        if (r.risk() == Risk.HIGH) {
-            pendingAlert = true;
-            addLocalNote("High-risk posting detected", "Scan scored " + r.score + "/100.");
-        }
+        pendingAlert = r.score >= 50;
     }
 
     /* ---------- HISTORY: GET /api/history/{userId} ---------- */
@@ -205,10 +230,13 @@ public class ScanScore {
                     List<Result> list = new ArrayList<>();
                     for (int i = 0; i < arr.length(); i++) {
                         JSONObject o = arr.getJSONObject(i);
+                        int id = o.optInt("postingId");
+                        Result local = session.get(id);
+                        if (local != null) { list.add(local); continue; }
                         String type = "url".equalsIgnoreCase(o.optString("scanType")) ? "URL" : "Text";
-                        list.add(new Result(o.optInt("postingId"), o.optString("contentPreview"), type,
-                                o.optInt("riskScore"), o.optString("riskLevel", ""), "",
-                                new ArrayList<Hit>(), parseTime(o.optString("submissionDate")), true));
+                        list.add(new Result(id, o.optString("contentPreview"), type, o.optInt("riskScore"),
+                                o.optString("riskLevel", ""), new ArrayList<Hit>(),
+                                parseTime(o.optString("submissionDate")), true));
                     }
                     Collections.sort(list, (a, b) -> Long.compare(b.time, a.time));
                     history.clear();
@@ -229,13 +257,15 @@ public class ScanScore {
                 try {
                     JSONArray arr = new JSONArray(json);
                     List<Note> list = new ArrayList<>();
+                    reviews.clear();
                     for (int i = 0; i < arr.length(); i++) {
                         JSONObject o = arr.getJSONObject(i);
                         int id = o.optInt("notificationId");
+                        int pid = o.optInt("postingId");
                         String msg = o.optString("message");
-                        String title = msg.contains("high_risk") ? "High-risk posting reviewed" : "Posting reviewed";
                         boolean read = o.optBoolean("isRead") || readIds.contains(id);
-                        list.add(new Note(id, title, msg, parseTime(o.optString("createdAt")), read));
+                        list.add(new Note(id, pid, msg, parseTime(o.optString("createdAt")), read));
+                        reviews.put(pid, msg);
                     }
                     Collections.sort(list, (a, b) -> Long.compare(b.time, a.time));
                     notes.clear();
@@ -251,8 +281,20 @@ public class ScanScore {
 
     public void markRead(Note n) {
         n.read = true;
-        if (n.id != -1) readIds.add(n.id); // local only - no mark-read endpoint yet
+        readIds.add(n.id); // local only - no mark-read endpoint yet
     }
+
+    public Result findByPosting(int postingId) {
+        for (Result r : history) if (r.postingId == postingId) return r;
+        return null;
+    }
+
+    public String titleFor(int postingId) {
+        Result r = findByPosting(postingId);
+        return r != null ? r.title() : "Posting #" + postingId;
+    }
+
+    public String reviewFor(int postingId) { return reviews.get(postingId); }
 
     /* ---------- shared helpers ---------- */
     public void fetch(final String path, final LoadCallback cb) {
@@ -301,14 +343,9 @@ public class ScanScore {
         return out.toString("UTF-8");
     }
 
-    private void addLocalNote(String title, String message) {
-        notes.add(0, new Note(-1, title, message, System.currentTimeMillis(), false));
-    }
-
     public void requestReview() {
         if (current == null) return;
-        current.reviewRequested = true; // local only - no review endpoint yet
-        addLocalNote("Review requested", "A human reviewer will check this posting.");
+        current.reviewRequested = true; // local only - backend has no review endpoint yet
     }
 
     public int unread() {

@@ -33,6 +33,7 @@
 
         <activity android:name=".jobseeker.HomeActivity" android:exported="false" />
         <activity android:name=".jobseeker.ResultActivity" android:exported="false" />
+        <activity android:name=".jobseeker.ReportActivity" android:exported="false" />
         <activity android:name=".jobseeker.HistoryActivity" android:exported="false" />
         <activity android:name=".jobseeker.NotificationsActivity" android:exported="false" />
     </application>

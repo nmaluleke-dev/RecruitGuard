@@ -3,34 +3,49 @@ package com.recruitguard.app.jobseeker;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.*;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.recruitguard.app.R;
 
 public class HomeActivity extends AppCompatActivity {
     private Spinner typeSpinner;
     private EditText input;
-    private Button scanBtn;
+    private TextView scanBtn;
     private ProgressBar progress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.js_home);
+        JsUi.window(this);
+        ScanScore.init(this);
+        JsUi.setupDrawer(this, R.id.js_menu_home);
+
+        String name = ScanScore.userName();
+        ((TextView) findViewById(R.id.js_welcome))
+                .setText(name.isEmpty() ? "Welcome back" : "Welcome back, " + name);
 
         typeSpinner = findViewById(R.id.js_type);
         input = findViewById(R.id.js_input);
         scanBtn = findViewById(R.id.js_scan_btn);
         progress = findViewById(R.id.js_progress);
 
-        typeSpinner.setAdapter(new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_dropdown_item, new String[]{"URL", "Text"}));
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.js_spinner_item,
+                new String[]{"Text", "URL"});
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        typeSpinner.setAdapter(adapter);
         typeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override public void onItemSelected(AdapterView<?> p, View v, int pos, long id) {
                 input.setText("");
                 input.setError(null);
-                input.setHint(pos == 0 ? "Paste job posting URL" : "Paste job posting text");
+                input.setHint(pos == 0 ? "e.g. We are hiring urgently. Pay R500 fee..."
+                        : "e.g. https://www.linkedin.com/jobs...");
             }
             @Override public void onNothingSelected(AdapterView<?> p) { }
         });
@@ -62,7 +77,7 @@ public class HomeActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        JsUi.setupNav(this, R.id.js_nav_scan);
-        ScanScore.get().loadNotifications(error -> JsUi.setupNav(this, R.id.js_nav_scan));
+        JsUi.refreshBadge(this);
+        ScanScore.get().loadNotifications(error -> JsUi.refreshBadge(this));
     }
 }

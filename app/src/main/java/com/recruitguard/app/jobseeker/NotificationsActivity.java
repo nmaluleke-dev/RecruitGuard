@@ -1,45 +1,64 @@
 package com.recruitguard.app.jobseeker;
 
-import android.graphics.Typeface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.recruitguard.app.R;
 
 public class NotificationsActivity extends AppCompatActivity {
+    private static final String[] FILTERS = {"All", "Read", "Unread"};
+    private int filter = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.js_notifications);
+        JsUi.window(this);
+        JsUi.setupDrawer(this, R.id.js_menu_notifications);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        refresh();
+        render();
+        // history first, so each notification can show the posting's name
+        ScanScore.get().loadHistory(e1 ->
+                ScanScore.get().loadNotifications(e2 -> {
+                    if (e2 != null) Toast.makeText(this, e2, Toast.LENGTH_LONG).show();
+                    render();
+                }));
     }
 
-    private void refresh() {
-        JsUi.setupNav(this, R.id.js_nav_alerts);
+    private void render() {
+        JsUi.chips((LinearLayout) findViewById(R.id.js_chips), FILTERS, filter, i -> {
+            filter = i;
+            render();
+        });
 
         LinearLayout list = findViewById(R.id.js_list);
         list.removeAllViews();
-        findViewById(R.id.js_empty).setVisibility(
-                ScanScore.get().notes.isEmpty() ? View.VISIBLE : View.GONE);
 
         for (ScanScore.Note n : ScanScore.get().notes) {
-            View row = JsUi.row(getLayoutInflater(), list, null, 0, n.title,
-                    n.message + "\n" + JsUi.fmt(n.time));
-            ((TextView) row.findViewById(R.id.js_row_title))
-                    .setTypeface(null, n.read ? Typeface.NORMAL : Typeface.BOLD);
+            if (filter == 1 && !n.read) continue;
+            if (filter == 2 && n.read) continue;
+
+            View row = JsUi.noteRow(getLayoutInflater(), list, n);
             row.setOnClickListener(v -> {
-                n.read = true;
-                refresh();
+                ScanScore.get().markRead(n);
+                ScanScore.Result r = ScanScore.get().findByPosting(n.postingId);
+                if (r != null) {
+                    ScanScore.get().current = r;
+                    startActivity(new Intent(this, ReportActivity.class));
+                } else {
+                    Toast.makeText(this, "Open Scan History to view this report.", Toast.LENGTH_SHORT).show();
+                    render();
+                }
             });
         }
+        findViewById(R.id.js_empty).setVisibility(list.getChildCount() == 0 ? View.VISIBLE : View.GONE);
+        JsUi.refreshBadge(this);
     }
 }

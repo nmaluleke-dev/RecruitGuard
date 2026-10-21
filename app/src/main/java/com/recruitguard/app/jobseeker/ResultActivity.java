@@ -1,13 +1,13 @@
 package com.recruitguard.app.jobseeker;
 
 import android.os.Bundle;
-import android.widget.Button;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.recruitguard.app.R;
+import java.util.Locale;
 
 public class ResultActivity extends AppCompatActivity {
     private ScanScore.Result r;
@@ -16,11 +16,12 @@ public class ResultActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.js_result);
+        JsUi.window(this);
+        JsUi.setupBack(this);
 
         r = ScanScore.get().current;
         if (r == null) { finish(); return; }
 
-        findViewById(R.id.js_back).setOnClickListener(v -> finish());
         findViewById(R.id.js_review_btn).setOnClickListener(v -> {
             ScanScore.get().requestReview();
             render();
@@ -34,37 +35,33 @@ public class ResultActivity extends AppCompatActivity {
     }
 
     private void render() {
-        TextView score = findViewById(R.id.js_score);
-        score.setText(String.valueOf(r.score));
-        JsUi.tint(score, r.color());
+        ((TextView) findViewById(R.id.js_date)).setText(JsUi.fmtDate(r.time));
+        JsUi.tint(findViewById(R.id.js_dot), r.color());
 
-        TextView label = findViewById(R.id.js_label);
-        label.setText(r.label());
+        TextView label = findViewById(R.id.js_risk_label);
+        label.setText(r.label().toUpperCase(Locale.ROOT));
         label.setTextColor(r.color());
 
-        ((TextView) findViewById(R.id.js_input_text)).setText(r.input);
+        ((TextView) findViewById(R.id.js_score_text)).setText("Risk Score: " + r.score + "/100");
+        ((TextView) findViewById(R.id.js_type_text)).setText("Type: " + r.typeLabel());
+        ((TextView) findViewById(R.id.js_content)).setText("\"" + r.input + "\"");
 
-        LinearLayout hits = findViewById(R.id.js_hits);
-        hits.removeAllViews();
+        LinearLayout flags = findViewById(R.id.js_flags);
+        flags.removeAllViews();
         if (r.hits.isEmpty()) {
-            TextView none = new TextView(this);
-            none.setText(r.fromHistory ? "Rule details aren't available for past scans."
-                    : "No suspicious rules triggered.");
-            hits.addView(none);
+            JsUi.line(flags, "No suspicious rules triggered.");
         } else {
-            for (ScanScore.Hit h : r.hits) {
-                JsUi.row(getLayoutInflater(), hits, "+" + h.points, r.color(), h.name, h.description);
-            }
+            for (ScanScore.Hit h : r.hits) JsUi.line(flags, "- " + h.description);
         }
 
-        Button review = findViewById(R.id.js_review_btn);
+        TextView review = findViewById(R.id.js_review_btn);
         review.setEnabled(!r.reviewRequested);
-        review.setText(r.reviewRequested ? "Review Requested " : "Request Human Review");
+        review.setText(r.reviewRequested ? "Review Requested" : "Request Human Review");
     }
 
     private void showFraudAlert() {
         new AlertDialog.Builder(this)
-                .setTitle(" Likely Fraud Detected")
+                .setTitle("Likely Fraud Detected")
                 .setMessage("This posting scored " + r.score + "/100. Do not send money or personal documents. We recommend a human review.")
                 .setPositiveButton("Request Review", (d, w) -> {
                     ScanScore.get().requestReview();
