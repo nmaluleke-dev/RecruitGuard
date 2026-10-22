@@ -132,8 +132,9 @@ public class SignInActivity extends AppCompatActivity
                             editor.putInt("userId", auth.getUserId());
                             editor.apply();
 
-                            /*
+
                             // TODO: Role-based routing
+                            /*
                             if ("admin".equals(auth.getRole()))
                             {
                                 // Go to Admin Dashboard
@@ -142,7 +143,7 @@ public class SignInActivity extends AppCompatActivity
                             else
                             {
                                 //Go to Job Seeker Home
-                                startActivity(new Intent(SignInActivity.this, com.recruitguard.app.jobseeker.HomeActivity.class));
+                                startActivity(new Intent(SignInActivity.this, HomeActivity.class));
                             }
                             finish();
                             */

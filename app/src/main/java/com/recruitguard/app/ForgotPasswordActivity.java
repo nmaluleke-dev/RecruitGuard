@@ -32,6 +32,7 @@ public class ForgotPasswordActivity extends AppCompatActivity
     // security questions
     private String[] securityQuestions =
     {
+        "Select your security question",
         "What is your mother's maiden name?",
         "What was the name of your first pet?",
         "What city were you born in?",
@@ -65,7 +66,7 @@ public class ForgotPasswordActivity extends AppCompatActivity
         confirmPasswordInput = findViewById(R.id.confirmPasswordInput);
         resetPasswordButton = findViewById(R.id.resetPasswordButton);
 
-        // Spinner with questions (disabled)
+        // Spinner with questions
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, securityQuestions)
         {
             @Override
@@ -73,9 +74,8 @@ public class ForgotPasswordActivity extends AppCompatActivity
             {
                 View view = super.getView(position, convertView, parent);
                 TextView text = (TextView) view.findViewById(android.R.id.text1);
-                text.setTextColor(Color.parseColor("#333333"));
+                text.setTextColor(Color.parseColor("#000000"));
                 text.setTextSize(16);
-                text.setTypeface(null, Typeface.BOLD);
                 return view;
             }
 
@@ -84,14 +84,15 @@ public class ForgotPasswordActivity extends AppCompatActivity
             {
                 View view = super.getDropDownView(position, convertView, parent);
                 TextView text = (TextView) view.findViewById(android.R.id.text1);
-                text.setTextColor(Color.parseColor("#1C1C1E"));
+                text.setTextColor(Color.parseColor("#000000"));
+                text.setPadding(32, 24, 32, 24);
                 return view;
             }
         };
 
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         securityQuestionSpinner.setAdapter(adapter);
-        securityQuestionSpinner.setEnabled(false);
+        securityQuestionSpinner.setEnabled(true);
 
 
         // Password visibility toggle for New Password
@@ -167,54 +168,41 @@ public class ForgotPasswordActivity extends AppCompatActivity
         });
 
 
-        // TODO: VERIFY EMAIL BUTTON
         verifyEmailButton.setOnClickListener(new View.OnClickListener()
         {
             @Override
-            public void onClick(View v)
-            {
+            public void onClick(View v) {
                 String email = emailInput.getText().toString().trim();
 
-                if (email.isEmpty())
-                {
+                if (email.isEmpty()) {
                     emailInput.setError("Email is required");
                     emailInput.requestFocus();
                     return;
                 }
 
-                if (!isValidEmail(email))
-                {
+                if (!isValidEmail(email)) {
                     emailInput.setError("Please enter a valid email");
                     emailInput.requestFocus();
                     return;
                 }
 
-                // Call API to verify email exists and get security question
+                // Call API to verify email exists
                 VerifyEmailRequest request = new VerifyEmailRequest(email);
                 ApiService apiService = ApiClient.getService();
 
-                apiService.getSecurityQuestion(request).enqueue(new Callback<SecurityQuestionResponse>()
+                apiService.verifyEmail(request).enqueue(new Callback<Void>()
                 {
                     @Override
-                    public void onResponse(Call<SecurityQuestionResponse> call, Response<SecurityQuestionResponse> response)
+                    public void onResponse(Call<Void> call, Response<Void> response)
                     {
-                        if (response.isSuccessful() && response.body() != null)
+                        if (response.isSuccessful())
                         {
-                            //get index from API
-                            int questionIndex = Integer.parseInt(response.body().getQuestion());
-
-                            //Disable email editing
                             emailInput.setEnabled(false);
                             verifyEmailButton.setEnabled(false);
                             verifyEmailButton.setText("Verified");
-
-                            //show security section
                             securitySection.setVisibility(View.VISIBLE);
-
-                            // Set security question. Just displays the text and disables the spinner.
-                            securityQuestionSpinner.setSelection(questionIndex);
-
-                            Utils.showToast(ForgotPasswordActivity.this, "Email verified! Please answer your security question.");
+                            securityQuestionSpinner.setEnabled(true);
+                            Utils.showToast(ForgotPasswordActivity.this, "Email verified! Please select your security question.");
                         }
                         else
                         {
@@ -223,7 +211,7 @@ public class ForgotPasswordActivity extends AppCompatActivity
                     }
 
                     @Override
-                    public void onFailure(Call<SecurityQuestionResponse> call, Throwable t)
+                    public void onFailure(Call<Void> call, Throwable t)
                     {
                         Utils.showToast(ForgotPasswordActivity.this, "Network error: " + t.getMessage());
                     }
@@ -242,6 +230,12 @@ public class ForgotPasswordActivity extends AppCompatActivity
                 String answer = securityAnswerInput.getText().toString().trim();
                 String newPass = newPasswordInput.getText().toString().trim();
                 String confirmPass = confirmPasswordInput.getText().toString().trim();
+
+                if (securityQuestionSpinner.getSelectedItemPosition() == 0)
+                {
+                    Utils.showToast(ForgotPasswordActivity.this, "Please select your security question");
+                    return;
+                }
 
                 if (answer.isEmpty())
                 {
@@ -271,8 +265,15 @@ public class ForgotPasswordActivity extends AppCompatActivity
                     return;
                 }
 
+                int questionIndex = securityQuestionSpinner.getSelectedItemPosition() - 1;
+
                 // Call API to reset password
-                ResetPasswordRequest request = new ResetPasswordRequest(email, answer, newPass);
+                ResetPasswordRequest request = new ResetPasswordRequest(
+                        email,
+                        questionIndex,
+                        answer,
+                        newPass);
+
                 ApiService apiService = ApiClient.getService();
 
                 apiService.resetPassword(request).enqueue(new Callback<Void>()
@@ -291,7 +292,24 @@ public class ForgotPasswordActivity extends AppCompatActivity
                         }
                         else
                         {
-                            Utils.showToast(ForgotPasswordActivity.this, "Incorrect security answer. Please try again.");
+                            //Check which error the backend sent
+                            String errorMessage = "Incorrect security answer. Please try again";
+                            try {
+                                if(response.errorBody() != null)
+                                {
+                                    String errorBody = response.errorBody().string();
+
+                                    if(errorBody.contains("question"))
+                                    {
+                                        errorMessage = "Incorrect security question selected. Please try again";
+                                    }
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                //Keep default message
+                            }
+                            Utils.showToast(ForgotPasswordActivity.this, errorMessage);
                         }
                     }
 

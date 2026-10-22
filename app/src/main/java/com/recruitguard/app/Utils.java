@@ -27,22 +27,12 @@ public class Utils
             }
         }
 
-        // Center it if needed
+        // Center it
         toast.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, 100);
 
         toast.show();
 
 
-        /*
-        view.getBackground().setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN);
-
-        TextView text = view.findViewById(android.R.id.message);
-        text.setTextColor(Color.BLACK);
-        text.setTextSize(16);
-
-        toast.show();
-
-         */
     }
 }
 

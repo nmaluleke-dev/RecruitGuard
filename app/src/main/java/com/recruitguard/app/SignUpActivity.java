@@ -200,7 +200,7 @@ public class SignUpActivity extends AppCompatActivity
 
 
                 //Call API
-                int  questionIndex = securityQuestionSpinner.getSelectedItemPosition();
+                int  questionIndex = securityQuestionSpinner.getSelectedItemPosition() - 1;
 
                 RegisterRequest request = new RegisterRequest(
                         name,
