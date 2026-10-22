@@ -1,45 +1,84 @@
-package com.recruitguard.app.jobseeker;
-
+package com.recruitguard.app;
 
 import com.google.gson.annotations.SerializedName;
+import java.util.List;
 
-public class FlaggedJobResponse
-{
-    @SerializedName("scanId")
-    private String scanId;
+public class FlaggedJobResponse {
+    @SerializedName("postingId")
+    private int postingId;
 
-    @SerializedName("userName")
-    private String userName;
+    @SerializedName("userId")
+    private int userId;
+
+    @SerializedName("contentPreview")
+    private String contentPreview;
 
     @SerializedName("riskLevel")
     private String riskLevel;
 
-    @SerializedName("scanType")
-    private String scanType;
-
-    @SerializedName("jobTitle")
-    private String jobTitle;
-
-    @SerializedName("scannedContent")
-    private String scannedContent;
-
-    @SerializedName("systemRisk")
-    private String systemRisk;
-
     @SerializedName("riskScore")
     private int riskScore;
 
-    @SerializedName("createdAt")
-    private String createdAt;
+    @SerializedName("scanType")
+    private String scanType;
 
-    // Getters
-    public String getScanId() { return scanId; }
-    public String getUserName() { return userName; }
+    @SerializedName("submissionDate")
+    private String submissionDate;
+
+    @SerializedName("reviewed")
+    private boolean reviewed;
+
+    @SerializedName("flaggedIndicators")
+    private List<Indicator> flaggedIndicators;
+
+    public static class Indicator {
+        @SerializedName("indicatorType")
+        private String indicatorType;
+
+        @SerializedName("points")
+        private int points;
+
+        @SerializedName("description")
+        private String description;
+
+        public String getIndicatorType() { return indicatorType; }
+        public int getPoints() { return points; }
+        public String getDescription() { return description; }
+    }
+
+    public int getPostingId() { return postingId; }
+    public int getUserId() { return userId; }
+    public String getContentPreview() { return contentPreview; }
     public String getRiskLevel() { return riskLevel; }
-    public String getScanType() { return scanType; }
-    public String getJobTitle() { return jobTitle; }
-    public String getScannedContent() { return scannedContent; }
-    public String getSystemRisk() { return systemRisk; }
     public int getRiskScore() { return riskScore; }
-    public String getCreatedAt() { return createdAt; }
+    public String getScanType() { return scanType; }
+    public String getSubmissionDate() { return submissionDate; }
+    public boolean isReviewed() { return reviewed; }
+    public List<Indicator> getFlaggedIndicators() { return flaggedIndicators; }
+
+    public String getScanId() { return "CAS-" + postingId; }
+    public String getUserName() { return "User #" + userId; }
+
+    public String getJobTitle() {
+        if (scanType != null && scanType.equalsIgnoreCase("url")) {
+            String url = getScannedContent();
+            if (url != null && url.contains("//")) {
+                try {
+                    String domain = url.split("//")[1].split("/")[0];
+                    return domain.replace("www.", "");
+                } catch (Exception e) {
+                    return "URL Scan";
+                }
+            }
+            return "URL Scan";
+        }
+        if (contentPreview != null && contentPreview.length() > 40) {
+            return contentPreview.substring(0, 40) + "...";
+        }
+        return contentPreview != null ? contentPreview : "Job Posting";
+    }
+
+    public String getScannedContent() { return contentPreview; }
+    public String getSystemRisk() { return riskLevel != null ? riskLevel.replace("_", " ") : "unknown"; }
+    public String getCreatedAt() { return submissionDate; }
 }
