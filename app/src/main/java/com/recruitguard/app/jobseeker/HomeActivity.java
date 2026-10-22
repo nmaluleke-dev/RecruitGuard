@@ -59,7 +59,7 @@ public class HomeActivity extends AppCompatActivity {
             scanBtn.setEnabled(false);
             progress.setVisibility(View.VISIBLE);
 
-            ScanScore.get().scan(value, type, new ScanScore.Callback() {
+            ScanScore.get().scan(value, type, new ScanScore.ScanCallback() {
                 @Override public void onSuccess(ScanScore.Result r) {
                     progress.setVisibility(View.GONE);
                     scanBtn.setEnabled(true);

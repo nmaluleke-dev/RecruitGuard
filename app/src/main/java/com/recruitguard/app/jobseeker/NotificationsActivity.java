@@ -8,12 +8,14 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.recruitguard.app.R;
 
-public class NotificationsActivity extends AppCompatActivity {
+public class NotificationsActivity extends AppCompatActivity
+{
     private static final String[] FILTERS = {"All", "Read", "Unread"};
     private int filter = 0;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.js_notifications);
         JsUi.window(this);
@@ -21,7 +23,8 @@ public class NotificationsActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onResume() {
+    protected void onResume()
+    {
         super.onResume();
         render();
         // history first, so each notification can show the posting's name
@@ -32,7 +35,8 @@ public class NotificationsActivity extends AppCompatActivity {
                 }));
     }
 
-    private void render() {
+    private void render()
+    {
         JsUi.chips((LinearLayout) findViewById(R.id.js_chips), FILTERS, filter, i -> {
             filter = i;
             render();
@@ -41,7 +45,8 @@ public class NotificationsActivity extends AppCompatActivity {
         LinearLayout list = findViewById(R.id.js_list);
         list.removeAllViews();
 
-        for (ScanScore.Note n : ScanScore.get().notes) {
+        for (ScanScore.Note n : ScanScore.get().notes)
+        {
             if (filter == 1 && !n.read) continue;
             if (filter == 2 && n.read) continue;
 
@@ -49,11 +54,14 @@ public class NotificationsActivity extends AppCompatActivity {
             row.setOnClickListener(v -> {
                 ScanScore.get().markRead(n);
                 ScanScore.Result r = ScanScore.get().findByPosting(n.postingId);
-                if (r != null) {
+                if (r != null)
+                {
                     ScanScore.get().current = r;
-                    startActivity(new Intent(this, ReportActivity.class));
-                } else {
-                    Toast.makeText(this, "Open Scan History to view this report.", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(this, ResultActivity.class));
+                }
+                else
+                {
+                    Toast.makeText(this, "Go to Scan History to view this report.", Toast.LENGTH_SHORT).show();
                     render();
                 }
             });

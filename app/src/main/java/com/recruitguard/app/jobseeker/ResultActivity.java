@@ -9,18 +9,24 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.recruitguard.app.R;
 import java.util.Locale;
 
-public class ResultActivity extends AppCompatActivity {
+public class ResultActivity extends AppCompatActivity
+{
     private ScanScore.Result r;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.js_result);
         JsUi.window(this);
         JsUi.setupBack(this);
 
         r = ScanScore.get().current;
-        if (r == null) { finish(); return; }
+        if (r == null)
+        {
+            finish();
+            return;
+        }
 
         findViewById(R.id.js_review_btn).setOnClickListener(v -> {
             ScanScore.get().requestReview();
@@ -28,13 +34,16 @@ public class ResultActivity extends AppCompatActivity {
         });
         render();
 
-        if (ScanScore.get().pendingAlert) {
+        // Show fraud alert only for new high-risk scans
+        if (ScanScore.get().pendingAlert && !r.fromHistory)
+        {
             ScanScore.get().pendingAlert = false;
             showFraudAlert();
         }
     }
 
-    private void render() {
+    private void render()
+    {
         ((TextView) findViewById(R.id.js_date)).setText(JsUi.fmtDate(r.time));
         JsUi.tint(findViewById(R.id.js_dot), r.color());
 
@@ -48,15 +57,29 @@ public class ResultActivity extends AppCompatActivity {
 
         LinearLayout flags = findViewById(R.id.js_flags);
         flags.removeAllViews();
-        if (r.hits.isEmpty()) {
+        if (r.hits.isEmpty())
+        {
             JsUi.line(flags, "No suspicious rules triggered.");
-        } else {
+        }
+        else
+        {
             for (ScanScore.Hit h : r.hits) JsUi.line(flags, "- " + h.description);
         }
 
         TextView review = findViewById(R.id.js_review_btn);
-        review.setEnabled(!r.reviewRequested);
-        review.setText(r.reviewRequested ? "Review Requested" : "Request Human Review");
+
+        if(r.fromHistory || r.reviewRequested)
+        {
+            review.setEnabled(false);
+            review.setText(r.reviewRequested ? "Review Requested" : "View Only");
+            review.setAlpha(0.5f);
+        }
+        else
+        {
+            review.setEnabled(true);
+            review.setText("Request Human Review");
+            review.setAlpha(1.0f);
+        }
     }
 
     private void showFraudAlert() {

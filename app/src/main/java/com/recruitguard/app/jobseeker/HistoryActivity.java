@@ -8,12 +8,14 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.recruitguard.app.R;
 
-public class HistoryActivity extends AppCompatActivity {
+public class HistoryActivity extends AppCompatActivity
+{
     private static final String[] FILTERS = {"All", "URL Scan", "Text Scan", "Low Risk", "High Risk"};
     private int filter = 0;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.js_history);
         JsUi.window(this);
@@ -21,7 +23,8 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onResume() {
+    protected void onResume()
+    {
         super.onResume();
         render();
         ScanScore.get().loadHistory(error -> {
@@ -40,7 +43,8 @@ public class HistoryActivity extends AppCompatActivity {
         LinearLayout list = findViewById(R.id.js_list);
         list.removeAllViews();
 
-        for (ScanScore.Result s : ScanScore.get().history) {
+        for (ScanScore.Result s : ScanScore.get().history)
+        {
             if (filter == 1 && !s.type.equals("URL")) continue;
             if (filter == 2 && !s.type.equals("Text")) continue;
             if (filter == 3 && s.risk() != ScanScore.Risk.LOW) continue;
@@ -49,7 +53,7 @@ public class HistoryActivity extends AppCompatActivity {
             View row = JsUi.historyRow(getLayoutInflater(), list, s);
             row.setOnClickListener(v -> {
                 ScanScore.get().current = s;
-                startActivity(new Intent(this, ReportActivity.class));
+                startActivity(new Intent(this, ResultActivity.class));
             });
         }
         findViewById(R.id.js_empty).setVisibility(list.getChildCount() == 0 ? View.VISIBLE : View.GONE);
