@@ -49,14 +49,14 @@ public class User {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    @Column(length = 255)
-    private String securityQuestion;
+    @Column
+    private Integer securityQuestion;
 
     @Column(length = 255)
     private String securityAnswer;
 
-    public String getSecurityQuestion() { return securityQuestion; }
-    public void setSecurityQuestion(String securityQuestion) { this.securityQuestion = securityQuestion; }
+    public Integer getSecurityQuestion() { return securityQuestion; }
+    public void setSecurityQuestion(Integer securityQuestion) { this.securityQuestion = securityQuestion; }
 
     public String getSecurityAnswer() { return securityAnswer; }
     public void setSecurityAnswer(String securityAnswer) { this.securityAnswer = securityAnswer; }
