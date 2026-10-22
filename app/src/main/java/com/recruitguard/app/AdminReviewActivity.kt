@@ -4,14 +4,11 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
-class AdminReviewActivity : AppCompatActivity()
-{
+class AdminReviewActivity : AppCompatActivity() {
 
-    override fun onCreate(savedInstanceState: Bundle?)
-    {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_admin_review)
 
@@ -41,12 +38,12 @@ class AdminReviewActivity : AppCompatActivity()
         val btnHighRisk = findViewById<Button>(R.id.btnHighRisk)
 
         btnLowRisk?.setOnClickListener {
-            Toast.makeText(this, "Marked as Low Risk / Legitimate", Toast.LENGTH_SHORT).show()
+            Utils.showToast(this, "Marked as Low Risk / Legitimate")
             finish()
         }
 
         btnHighRisk?.setOnClickListener {
-            Toast.makeText(this, "Flagged as High Risk / Fraud", Toast.LENGTH_SHORT).show()
+            Utils.showToast(this, "Flagged as High Risk / Fraud")
             finish()
         }
     }
