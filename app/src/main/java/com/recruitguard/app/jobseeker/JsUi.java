@@ -46,7 +46,7 @@ public class JsUi {
         ViewCompat.requestApplyInsets(content);
     }
 
-    /* ---- hamburger + side drawer (Home, History, Notifications) ---- */
+    /* ---- hamburger + side drawer (Home, History, Notifications, Logout) ---- */
     public static void setupDrawer(final AppCompatActivity a, final int selectedId) {
         final DrawerLayout drawer = a.findViewById(R.id.js_drawer);
         ImageView navBtn = a.findViewById(R.id.js_nav_btn);
@@ -60,10 +60,32 @@ public class JsUi {
             row.setAlpha(id == selectedId ? 1f : 0.7f);
             row.setOnClickListener(v -> go(a, id, selectedId, drawer));
         }
+
+        // Logout menu item
+        View logoutRow = a.findViewById(R.id.js_menu_logout);
+        if (logoutRow != null) {
+            logoutRow.setAlpha(0.7f);
+            logoutRow.setOnClickListener(v -> {
+                // Clear session
+                a.getSharedPreferences("RecruitGuardPrefs", Context.MODE_PRIVATE)
+                        .edit().clear().apply();
+
+                // Go to sign in
+                //TODO: uncomment after merge
+               /* Intent intent = new Intent(a, com.recruitguard.app.SignInActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                a.startActivity(intent);
+
+                */
+                a.finish();
+            });
+        }
+
         refreshBadge(a);
 
         a.getOnBackPressedDispatcher().addCallback(a, new OnBackPressedCallback(true) {
-            @Override public void handleOnBackPressed() {
+            @Override
+            public void handleOnBackPressed() {
                 if (drawer.isDrawerOpen(GravityCompat.START)) {
                     drawer.closeDrawer(GravityCompat.START);
                 } else {
@@ -140,7 +162,9 @@ public class JsUi {
     }
 
     /* ---- filter chips ---- */
-    public interface OnChip { void picked(int index); }
+    public interface OnChip {
+        void picked(int index);
+    }
 
     public static void chips(LinearLayout bar, String[] labels, int selected, final OnChip cb) {
         Context c = bar.getContext();
