@@ -70,29 +70,4 @@
             android:background="@drawable/js_circle"
             android:backgroundTint="@color/js_red" />
     </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/js_menu_logout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:padding="16dp"
-        android:background="?attr/selectableItemBackground">
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@android:drawable/ic_lock_power_off"
-            android:tint="#FFFFFF"
-            />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:text="Sign out"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp" />
-    </LinearLayout>
 </LinearLayout>

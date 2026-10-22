@@ -12,7 +12,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.recruitguard.app.R;
-import com.recruitguard.app.jobseeker.ResultActivity;
 
 public class HomeActivity extends AppCompatActivity {
     private Spinner typeSpinner;
