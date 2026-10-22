@@ -3,17 +3,17 @@ package com.recruitguard.app;
 import com.google.gson.annotations.SerializedName;
 
 public class AuditLogResponse {
-    @SerializedName("scanId")
-    private String scanId;
+    @SerializedName("auditId")
+    private int auditId;
 
-    @SerializedName("date")
-    private String date;
+    @SerializedName("postingId")
+    private int postingId;
 
     @SerializedName("riskScore")
-    private String riskScore;
+    private int riskScore;
 
-    @SerializedName("decision")
-    private String decision;
+    @SerializedName("finalDecision")
+    private String finalDecision;
 
     @SerializedName("adminName")
     private String adminName;
@@ -21,11 +21,15 @@ public class AuditLogResponse {
     @SerializedName("timestamp")
     private String timestamp;
 
-    // Getters
-    public String getScanId() { return scanId; }
-    public String getDate() { return date; }
-    public String getRiskScore() { return riskScore; }
-    public String getDecision() { return decision; }
+    public int getAuditId() { return auditId; }
+    public int getPostingId() { return postingId; }
+    public int getRiskScore() { return riskScore; }
+    public String getFinalDecision() { return finalDecision; }
     public String getAdminName() { return adminName; }
     public String getTimestamp() { return timestamp; }
+
+    public String getScanId() { return "CAS-" + postingId; }
+    public String getDate() { return timestamp; }
+    public String getDecision() { return finalDecision; }
+    public String getRiskScoreText() { return riskScore + "%"; }
 }
