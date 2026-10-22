@@ -61,10 +61,13 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("Email not found"));
         return new SecurityQuestionResponse(user.getSecurityQuestion());
     }
-
     public String resetPassword(ResetPasswordRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Email not found"));
+
+        if (!user.getSecurityQuestion().equals(request.getSecurityQuestion())) {
+            throw new RuntimeException("Incorrect security question selected");
+        }
 
         if (!user.getSecurityAnswer().equalsIgnoreCase(request.getSecurityAnswer())) {
             throw new RuntimeException("Incorrect security answer");
@@ -74,4 +77,5 @@ public class AuthService {
         userRepository.save(user);
         return "Password reset successfully";
     }
+
 }
