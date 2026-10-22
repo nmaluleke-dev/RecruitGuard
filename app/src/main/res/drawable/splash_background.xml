@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+        <!-- Navy blue background -->
+        <item
+            android:drawable="@color/navy_blue"
+        />
+
+        <!-- Full logo with text, centered -->
+        <item>
+            <bitmap
+                android:gravity="center"
+                android:src="@drawable/recruitguard_logo"
+                android:tileMode="disabled"
+            />
+        </item>
+    </layer-list>
