@@ -5,6 +5,15 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.Looper;
+
+import com.recruitguard.app.ApiClient;
+import com.recruitguard.app.ApiService;
+import com.recruitguard.app.HistoryResponse;
+import com.recruitguard.app.NotificationResponse;
+import com.recruitguard.app.ReviewRequest;
+import com.recruitguard.app.ScanRequest;
+import com.recruitguard.app.ScanResponse;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;

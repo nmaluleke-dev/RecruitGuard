@@ -7,6 +7,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.recruitguard.app.R;
+import com.recruitguard.app.ResultActivity;
 
 public class HistoryActivity extends AppCompatActivity
 {

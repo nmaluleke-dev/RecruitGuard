@@ -1,4 +1,4 @@
-package com.recruitguard.app.jobseeker;
+package com.recruitguard.app;
 
 import com.google.gson.annotations.SerializedName;
 
