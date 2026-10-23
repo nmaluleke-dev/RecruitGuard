@@ -1,30 +1,33 @@
 package com.recruitguard.app;
 
-public class AuthResponse
-{
+import com.google.gson.annotations.SerializedName;
+
+public class AuthResponse {
+    @SerializedName("token")
     private String token;
+
+    @SerializedName("role")
     private String role;
+
+    @SerializedName("name")
     private String name;
+
+    @SerializedName("userId")
     private int userId;
 
-    // Getters
-    public String getToken()
-    {
+    public String getToken() {
         return token;
     }
 
-    public String getRole()
-    {
+    public String getRole() {
         return role;
     }
 
-    public String getName()
-    {
+    public String getName() {
         return name;
     }
 
-    public int getUserId()
-    {
+    public int getUserId() {
         return userId;
     }
 }
