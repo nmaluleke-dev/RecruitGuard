@@ -1,10 +1,12 @@
 package com.recruitguard.app;
 
-public class SecurityQuestionResponse
-{
+import com.google.gson.annotations.SerializedName;
+
+public class SecurityQuestionResponse {
+    @SerializedName("question")
     private Integer question;
-    public Integer getQuestion()
-    {
+
+    public Integer getQuestion() {
         return question;
     }
 }
