@@ -9,7 +9,7 @@ import retrofit2.http.Path;
 
 public interface ApiService {
 
-    // Existing Auth Endpoints
+    // Auth Endpoints
     @POST("api/auth/register")
     Call<AuthResponse> register(@Body RegisterRequest request);
 
@@ -24,6 +24,19 @@ public interface ApiService {
 
     @POST("api/auth/reset-password")
     Call<Void> resetPassword(@Body ResetPasswordRequest request);
+
+    // Job Seeker Endpoints
+    @POST("api/scan/submit")
+    Call<ScanResponse> submitScan(@Body ScanRequest request);
+
+    @GET("api/history/{userId}")
+    Call<List<HistoryResponse>> getHistory(@Path("userId") int userId);
+
+    @GET("api/notifications/{userId}")
+    Call<List<NotificationResponse>> getNotifications(@Path("userId") int userId);
+
+    @POST("api/scan/request-review")
+    Call<Void> requestReview(@Body ReviewRequest request);
 
     // Admin Endpoints
     @GET("api/admin/flagged")

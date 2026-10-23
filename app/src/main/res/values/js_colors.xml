@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="js_navy">#03143B</color>
+    <color name="js_blue">#589DCD</color>
+    <color name="js_bg">#EFEFEF</color>
+    <color name="js_box">#E4E4E4</color>
+    <color name="js_text">#1B1B1B</color>
+    <color name="js_grey">#8A8A8A</color>
+    <color name="js_link">#2F8FD0</color>
+    <color name="js_red">#D32F2F</color>
+</resources>
