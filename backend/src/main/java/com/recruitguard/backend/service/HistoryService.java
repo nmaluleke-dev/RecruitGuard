@@ -1,8 +1,11 @@
 package com.recruitguard.backend.service;
 
 import com.recruitguard.backend.dto.ScanHistoryResponse;
+import com.recruitguard.backend.dto.ScanResponse;
+import com.recruitguard.backend.model.FlaggedIndicator;
 import com.recruitguard.backend.model.FraudScore;
 import com.recruitguard.backend.model.JobPosting;
+import com.recruitguard.backend.repository.FlaggedIndicatorRepository;
 import com.recruitguard.backend.repository.FraudScoreRepository;
 import com.recruitguard.backend.repository.JobPostingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +22,9 @@ public class HistoryService {
     @Autowired
     private FraudScoreRepository fraudScoreRepository;
 
+    @Autowired
+    private FlaggedIndicatorRepository flaggedIndicatorRepository;
+
     public List<ScanHistoryResponse> getUserHistory(Integer userId) {
         List<JobPosting> postings = jobPostingRepository.findByUserUserId(userId);
         List<ScanHistoryResponse> history = new ArrayList<>();
@@ -33,13 +39,24 @@ public class HistoryService {
                     : posting.getSourceUrl();
 
             if (score != null) {
+                List<FlaggedIndicator> indicators = flaggedIndicatorRepository
+                        .findByFraudScoreScoreId(score.getScoreId());
+                List<ScanResponse.FlagDetail> flags = new ArrayList<>();
+                for (FlaggedIndicator fi : indicators) {
+                    flags.add(new ScanResponse.FlagDetail(
+                            fi.getIndicatorType().name(),
+                            fi.getPoints(),
+                            fi.getDescription()));
+                }
+
                 history.add(new ScanHistoryResponse(
                         posting.getPostingId(),
                         posting.getScanType().name(),
                         preview,
                         score.getRiskScore(),
                         score.getRiskLevel().name(),
-                        posting.getSubmissionDate()
+                        posting.getSubmissionDate(),
+                        flags
                 ));
             }
         }

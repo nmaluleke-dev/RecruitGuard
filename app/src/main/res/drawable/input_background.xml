@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This file is for the input fields, to make them white with rounder corners like the system
+ model we did in del 3. Not only that, the field should make a blue border when clicked.-->
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Field clicked state-->
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#ffffff" />
+            <corners android:radius="8dp" />
+            <stroke
+                android:width="2dp"
+                android:color="#589DCD" />
+        </shape>
+    </item>
+
+    <!-- Field default state-->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#ffffff" />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+</selector>
