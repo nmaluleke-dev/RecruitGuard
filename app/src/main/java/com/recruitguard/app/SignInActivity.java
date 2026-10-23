@@ -8,6 +8,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.recruitguard.app.jobseeker.HomeActivity;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -132,9 +133,7 @@ public class SignInActivity extends AppCompatActivity
                             editor.putInt("userId", auth.getUserId());
                             editor.apply();
 
-
-                            // TODO: Role-based routing
-                            /*
+                            // Role-based routing
                             if ("admin".equals(auth.getRole()))
                             {
                                 // Go to Admin Dashboard
@@ -142,12 +141,10 @@ public class SignInActivity extends AppCompatActivity
                             }
                             else
                             {
-                                //Go to Job Seeker Home
+                                // Go to Job Seeker Home
                                 startActivity(new Intent(SignInActivity.this, HomeActivity.class));
                             }
                             finish();
-                            */
-
                         }
                         else
                         {
