@@ -14,6 +14,11 @@ public class FlaggedPostingResponse {
     private boolean reviewed;
     private List<ScanResponse.FlagDetail> flaggedIndicators;
 
+    private String fullContent;
+
+    public String getFullContent() { return fullContent; }
+    public void setFullContent(String fullContent) { this.fullContent = fullContent; }
+
     public Integer getPostingId() { return postingId; }
     public void setPostingId(Integer postingId) { this.postingId = postingId; }
 

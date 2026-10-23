@@ -40,10 +40,16 @@ public class AdminService {
         List<FlaggedPostingResponse> result = new ArrayList<>();
 
         for (JobPosting posting : postings) {
+            // Change B: skip postings that an admin has already reviewed
+            if (humanReviewRepository.existsByJobPostingPostingId(posting.getPostingId())) {
+                continue; // Skip already reviewed items
+            }
+
             FraudScore score = fraudScoreRepository
                     .findByJobPostingPostingId(posting.getPostingId());
 
-            if (score != null && score.getRiskLevel() == FraudScore.RiskLevel.high_risk) {
+            // Change A: show all risk levels, not only high_risk
+            if (score != null) {
                 FlaggedPostingResponse response = new FlaggedPostingResponse();
                 response.setPostingId(posting.getPostingId());
                 response.setUserId(posting.getUser().getUserId());
@@ -54,6 +60,10 @@ public class AdminService {
                         Math.min(100, posting.getContentText().length())) + "..."
                         : posting.getSourceUrl();
                 response.setContentPreview(preview);
+
+                // Change C: include the full posting text
+                response.setFullContent(posting.getContentText());
+
                 response.setRiskScore(score.getRiskScore());
                 response.setRiskLevel(score.getRiskLevel().name());
                 response.setSubmissionDate(posting.getSubmissionDate());
