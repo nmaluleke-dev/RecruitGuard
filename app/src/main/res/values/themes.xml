@@ -8,4 +8,15 @@
     </style>
 
     <style name="Theme.RecruitGuard" parent="Base.Theme.RecruitGuard" />
+
+    <!-- Splash screen theme without the white flash from the default -->
+    <style name="SplashTheme" parent="Theme.RecruitGuard">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:statusBarColor">@color/navy_blue</item>
+        <item name="android:navigationBarColor">@color/navy_blue</item>
+
+        <!--Disabling the default icon splash screen -->
+        <item name="android:windowSplashScreenBackground">@color/navy_blue</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
+    </style>
 </resources>

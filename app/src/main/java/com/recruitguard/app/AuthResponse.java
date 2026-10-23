@@ -15,8 +15,19 @@ public class AuthResponse {
     @SerializedName("userId")
     private int userId;
 
-    public String getToken() { return token; }
-    public String getRole() { return role; }
-    public String getName() { return name; }
-    public int getUserId() { return userId; }
+    public String getToken() {
+        return token;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
 }

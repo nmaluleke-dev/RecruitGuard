@@ -6,5 +6,7 @@ public class SecurityQuestionResponse {
     @SerializedName("question")
     private Integer question;
 
-    public Integer getQuestion() { return question; }
+    public Integer getQuestion() {
+        return question;
+    }
 }

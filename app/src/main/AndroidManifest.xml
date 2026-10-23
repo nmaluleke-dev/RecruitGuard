@@ -2,7 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application
+        android:usesCleartextTraffic="true"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -12,18 +16,49 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.RecruitGuard">
 
+        <!-- Splash Activity -->
+        <activity
+            android:name=".SplashActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustPan"
+            android:theme="@style/SplashTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Auth Activities -->
+        <activity
+            android:name=".SignUpActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".SignInActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ForgotPasswordActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustPan" />
+
+        <!-- Admin Activities -->
         <activity
             android:name=".AdminDashboardActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
-
         <activity
             android:name=".AdminReviewActivity"
             android:exported="false" />
-
         <activity
             android:name=".AuditTrailActivity"
             android:exported="false" />
-    </application>
 
+        <!-- Job Seeker Activities -->
+        <activity android:name=".jobseeker.HomeActivity" android:exported="false" />
+        <activity android:name=".ResultActivity" android:exported="false" />
+        <activity android:name=".jobseeker.HistoryActivity" android:exported="false" />
+        <activity android:name=".jobseeker.NotificationsActivity" android:exported="false" />
+
+    </application>
 </manifest>

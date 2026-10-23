@@ -7,11 +7,9 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class Utils
-{
+public class Utils {
 
-    public static void showToast(Context context, String message)
-    {
+    public static void showToast(Context context, String message) {
         Toast toast = Toast.makeText(context, message, Toast.LENGTH_LONG);
         View view = toast.getView();
 
@@ -31,7 +29,5 @@ public class Utils
 
         toast.show();
 
-
     }
 }
-

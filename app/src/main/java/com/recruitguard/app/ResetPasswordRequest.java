@@ -16,7 +16,7 @@ public class ResetPasswordRequest {
     private String newPassword;
 
     public ResetPasswordRequest(String email, Integer securityQuestion,
-                                String securityAnswer, String newPassword) {
+            String securityAnswer, String newPassword) {
         this.email = email;
         this.securityQuestion = securityQuestion;
         this.securityAnswer = securityAnswer;
