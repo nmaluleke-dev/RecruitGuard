@@ -31,7 +31,6 @@ class AuditTrailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_audit_trail)
 
-        // Fixed back arrow - straight arrow
         val btnBack = findViewById<ImageView>(R.id.btnBack)
         btnBack?.setImageResource(R.drawable.js_ic_back)
         btnBack?.setOnClickListener { finish() }
@@ -49,17 +48,24 @@ class AuditTrailActivity : AppCompatActivity() {
         btnLegitimate.setOnClickListener { currentFilter = "low"; applyFilterAndSearch() }
 
         etSearch.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) { applyFilterAndSearch() }
+            override fun afterTextChanged(s: Editable?) {
+                applyFilterAndSearch()
+            }
+
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
 
+        // Fetch real data from API
         fetchAuditTrail()
     }
 
     private fun fetchAuditTrail() {
         ApiClient.getService().getAuditTrail().enqueue(object : Callback<List<AuditLogResponse>> {
-            override fun onResponse(call: Call<List<AuditLogResponse>>, response: Response<List<AuditLogResponse>>) {
+            override fun onResponse(
+                call: Call<List<AuditLogResponse>>,
+                response: Response<List<AuditLogResponse>>
+            ) {
                 if (response.isSuccessful && response.body() != null) {
                     allLogs = response.body()!!
                     adapter = AuditLogAdapter(allLogs)
@@ -67,14 +73,24 @@ class AuditTrailActivity : AppCompatActivity() {
                     updateStats(allLogs)
                     updateButtonStates("all")
                 } else {
-                    Toast.makeText(this@AuditTrailActivity, "Failed to load audit trail", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@AuditTrailActivity,
+                        "Failed to load audit trail",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
+
             override fun onFailure(call: Call<List<AuditLogResponse>>, t: Throwable) {
-                Toast.makeText(this@AuditTrailActivity, "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@AuditTrailActivity,
+                    "Network error: ${t.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         })
     }
+
 
     private fun applyFilterAndSearch() {
         val searchQuery = etSearch.text.toString().lowercase()
@@ -110,8 +126,10 @@ class AuditTrailActivity : AppCompatActivity() {
         val lowRiskCount = logs.count { it.finalDecision.contains("low", ignoreCase = true) }
 
         findViewById<TextView>(R.id.tvTotalAudited)?.text = "Total Postings Audited: $totalAudited"
-        findViewById<TextView>(R.id.tvTotalHighRisk)?.text = "Total High Risk (Fraud): $highRiskCount"
-        findViewById<TextView>(R.id.tvTotalLowRisk)?.text = "Total Low Risk (Legitimate): $lowRiskCount"
+        findViewById<TextView>(R.id.tvTotalHighRisk)?.text =
+            "Total High Risk (Fraud): $highRiskCount"
+        findViewById<TextView>(R.id.tvTotalLowRisk)?.text =
+            "Total Low Risk (Legitimate): $lowRiskCount"
     }
 }
 

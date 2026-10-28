@@ -7,6 +7,9 @@ import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class AdminReviewActivity : AppCompatActivity() {
 
@@ -26,16 +29,17 @@ class AdminReviewActivity : AppCompatActivity() {
         val jobTitle = intent.getStringExtra("job_title") ?: "Job Posting"
         val riskLevel = intent.getStringExtra("risk_level") ?: "UNKNOWN"
         val scannedContent = intent.getStringExtra("scanned_content") ?: "No content"
-        val riskScore = intent.getIntExtra("risk_score", 0)
         val flaggedIndicators = intent.getStringArrayListExtra("flagged_indicators") ?: arrayListOf()
+        val postingId = intent.getIntExtra("posting_id", 0)
 
         findViewById<TextView>(R.id.tvScanId)?.text = "Scan ID: $scanId"
         findViewById<TextView>(R.id.tvJobTitle)?.text = "Job Title: $jobTitle"
         findViewById<TextView>(R.id.tvSystemRisk)?.text = riskLevel.replace("_", " ")
-        findViewById<TextView>(R.id.etScannedContent)?.setText(scannedContent)
+
+        val fullContent = intent.getStringExtra("full_content") ?: scannedContent
+        findViewById<TextView>(R.id.etScannedContent)?.setText(fullContent)
 
         tvRiskScore = findViewById(R.id.tvRiskScoreBox)
-        tvRiskScore.text = "Risk Score: $riskScore points"
 
         cbUpfront = findViewById(R.id.cbUpfrontPayment)
         cbUnrealistic = findViewById(R.id.cbUnrealisticCompensation)
@@ -46,9 +50,9 @@ class AdminReviewActivity : AppCompatActivity() {
 
         removeBoldFromCheckboxes()
         setCheckedBoxesFromSystem(flaggedIndicators)
+        calculateScore()
         setupCheckboxListeners()
 
-        // Fixed back arrow - straight arrow like client side
         val btnBack = findViewById<ImageView>(R.id.btnBackReview)
         btnBack?.setImageResource(R.drawable.js_ic_back)
         btnBack?.setOnClickListener { finish() }
@@ -57,13 +61,56 @@ class AdminReviewActivity : AppCompatActivity() {
         val btnHighRisk = findViewById<Button>(R.id.btnHighRisk)
 
         btnLowRisk?.setOnClickListener {
-            Utils.showToast(this, "Marked as Low Risk / Legitimate")
-            finish()
+            submitReview(postingId, "low_risk")
         }
         btnHighRisk?.setOnClickListener {
-            Utils.showToast(this, "Flagged as High Risk / Fraud")
-            finish()
+            submitReview(postingId, "high_risk")
         }
+    }
+
+    private fun submitReview(postingId: Int, decision: String) {
+        if (postingId == 0) {
+            Utils.showToast(this, "Error: Invalid posting ID")
+            return
+        }
+
+        val adminId = getSharedPreferences("RecruitGuardPrefs", MODE_PRIVATE)
+            .getInt("userId", 1)
+
+        var finalScore = 0
+        if (cbUpfront.isChecked) finalScore += 40
+        if (cbUnrealistic.isChecked) finalScore += 20
+        if (cbFreeEmail.isChecked) finalScore += 20
+        if (cbOffPlatform.isChecked) finalScore += 10
+        if (cbVague.isChecked) finalScore += 5
+        if (cbCoercive.isChecked) finalScore += 5
+        if (finalScore > 100) finalScore = 100
+
+        val recommendations = findViewById<TextView>(R.id.etRecommendations)?.text.toString()
+
+        val request = ReviewDecisionRequest(
+            postingId,
+            adminId,
+            decision,
+            finalScore,
+            recommendations
+        )
+
+
+        ApiClient.getService().submitReviewDecision(request).enqueue(object : Callback<Void> {
+            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                if (response.isSuccessful()) {
+                    Utils.showToast(this@AdminReviewActivity, "Review submitted: ${decision.replace("_", " ")}")
+                    finish()
+                } else {
+                    Utils.showToast(this@AdminReviewActivity, "Failed to submit review")
+                }
+            }
+
+            override fun onFailure(call: Call<Void>, t: Throwable) {
+                Utils.showToast(this@AdminReviewActivity, "Network error: ${t.message}")
+            }
+        })
     }
 
     private fun setCheckedBoxesFromSystem(indicators: List<String>) {
@@ -106,6 +153,9 @@ class AdminReviewActivity : AppCompatActivity() {
         if (cbOffPlatform.isChecked) score += 10
         if (cbVague.isChecked) score += 5
         if (cbCoercive.isChecked) score += 5
+
+        if (score > 100) score = 100
+
         tvRiskScore.text = "Risk Score: $score points"
     }
 }

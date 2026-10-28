@@ -9,7 +9,7 @@ import retrofit2.http.Path;
 
 public interface ApiService {
 
-    // Auth Endpoints
+    // Existing Auth Endpoints
     @POST("api/auth/register")
     Call<AuthResponse> register(@Body RegisterRequest request);
 
@@ -25,19 +25,6 @@ public interface ApiService {
     @POST("api/auth/reset-password")
     Call<Void> resetPassword(@Body ResetPasswordRequest request);
 
-    // Job Seeker Endpoints
-    @POST("api/scan/submit")
-    Call<ScanResponse> submitScan(@Body ScanRequest request);
-
-    @GET("api/history/{userId}")
-    Call<List<HistoryResponse>> getHistory(@Path("userId") int userId);
-
-    @GET("api/notifications/{userId}")
-    Call<List<NotificationResponse>> getNotifications(@Path("userId") int userId);
-
-    @POST("api/scan/request-review")
-    Call<Void> requestReview(@Body ReviewRequest request);
-
     // Admin Endpoints
     @GET("api/admin/flagged")
     Call<List<FlaggedJobResponse>> getFlaggedJobs();
@@ -47,4 +34,20 @@ public interface ApiService {
 
     @GET("api/admin/audit")
     Call<List<AuditLogResponse>> getAuditTrail();
+
+    // Job Seeker Endpoints
+    @POST("api/scan/submit")
+    Call<com.recruitguard.app.ScanResponse> submitScan(@Body com.recruitguard.app.ScanRequest request);
+
+    @GET("api/history/{userId}")
+    Call<List<com.recruitguard.app.HistoryResponse>> getHistory(@Path("userId") int userId);
+
+    @GET("api/notifications/{userId}")
+    Call<List<com.recruitguard.app.NotificationResponse>> getNotifications(@Path("userId") int userId);
+
+    @POST("api/scan/request-review")
+    Call<Void> requestReview(@Body com.recruitguard.app.ReviewRequest request);
+
+    @POST("api/scan/{postingId}/request-review")
+    Call<Void> markReviewRequested(@Path("postingId") int postingId);
 }

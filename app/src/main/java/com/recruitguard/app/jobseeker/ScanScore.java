@@ -10,7 +10,6 @@ import com.recruitguard.app.ApiClient;
 import com.recruitguard.app.ApiService;
 import com.recruitguard.app.HistoryResponse;
 import com.recruitguard.app.NotificationResponse;
-import com.recruitguard.app.ReviewRequest;
 import com.recruitguard.app.ScanRequest;
 import com.recruitguard.app.ScanResponse;
 
@@ -27,8 +26,6 @@ import java.util.Set;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-
-
 
 public class ScanScore {
 
@@ -53,6 +50,12 @@ public class ScanScore {
         public final boolean fromHistory;
         public boolean reviewRequested;
 
+        // Human review fields
+        public boolean reviewed;
+        public String finalDecision;
+        public String recommendations;
+        public String adminName;
+
         Result(int postingId, String input, String type, int score, String riskLevel,
                List<Hit> hits, long time, boolean fromHistory) {
             this.postingId = postingId;
@@ -63,6 +66,14 @@ public class ScanScore {
             this.hits = hits;
             this.time = time;
             this.fromHistory = fromHistory;
+        }
+
+        public void setHumanReview(boolean reviewed, String finalDecision,
+                                   String recommendations, String adminName) {
+            this.reviewed = reviewed;
+            this.finalDecision = finalDecision;
+            this.recommendations = recommendations;
+            this.adminName = adminName;
         }
 
         public Risk risk() {
@@ -97,6 +108,19 @@ public class ScanScore {
             int cut = s.lastIndexOf(' ', 36);
             return s.substring(0, cut > 10 ? cut : 36) + "...";
         }
+
+        public boolean hasUpfrontPayment() {
+            for (Hit hit : hits) {
+                if (hit.name.equalsIgnoreCase("upfront_payment")) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public boolean isHighRisk() {
+            return score >= 50 || hasUpfrontPayment();
+        }
     }
 
     public static class Note {
@@ -114,8 +138,7 @@ public class ScanScore {
         }
     }
 
-    public interface ScanCallback
-    {
+    public interface ScanCallback {
         void onSuccess(Result r);
         void onError(String message);
     }
@@ -226,7 +249,7 @@ public class ScanScore {
         history.add(0, r);
         session.put(r.postingId, r);
         current = r;
-        pendingAlert = r.score >= 50;
+        pendingAlert = r.isHighRisk();
     }
 
     /* ---------- HISTORY: GET /api/history/{userId} ---------- */
@@ -242,12 +265,20 @@ public class ScanScore {
                     for (HistoryResponse item : response.body()) {
                         Result local = session.get(item.getPostingId());
                         if (local != null) {
+                            // Update local result with human review data
+                            local.setHumanReview(
+                                    item.isReviewed(),
+                                    item.getFinalDecision(),
+                                    item.getRecommendations(),
+                                    item.getAdminName()
+                            );
+                            local.reviewRequested = item.isReviewRequested();
                             list.add(local);
                             continue;
                         }
 
                         String type = "url".equalsIgnoreCase(item.getScanType()) ? "URL" : "Text";
-                        list.add(new Result(
+                        Result result = new Result(
                                 item.getPostingId(),
                                 item.getContentPreview(),
                                 type,
@@ -256,7 +287,15 @@ public class ScanScore {
                                 new ArrayList<Hit>(),
                                 parseTime(item.getSubmissionDate()),
                                 true
-                        ));
+                        );
+                        result.setHumanReview(
+                                item.isReviewed(),
+                                item.getFinalDecision(),
+                                item.getRecommendations(),
+                                item.getAdminName()
+                        );
+                        result.reviewRequested = item.isReviewRequested();
+                        list.add(result);
                     }
 
                     Collections.sort(list, (a, b) -> Long.compare(b.time, a.time));
@@ -343,39 +382,29 @@ public class ScanScore {
         }
     }
 
-    public void requestReview()
-    {
+    public void requestReview() {
         if (current == null) return;
-        current.reviewRequested = true;
 
-        // Call POST /api/scan/{postingId}/request-review
         ApiService api = ApiClient.getService();
-
-        ReviewRequest request = new ReviewRequest(current.postingId, userId());
-
-        api.requestReview(request).enqueue(new Callback<Void>()
-        {
+        api.markReviewRequested(current.postingId).enqueue(new Callback<Void>() {
             @Override
-            public void onResponse(Call<Void> call, Response<Void> response)
-            {
-                if (response.isSuccessful())
-                {
-                    // Success - admin will see this in their flagged list
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
                     current.reviewRequested = true;
+                    if (appCtx != null) {
+                        android.widget.Toast.makeText(appCtx, "Review requested", android.widget.Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
 
             @Override
-            public void onFailure(Call<Void> call, Throwable t)
-            {
-                // Failed to send request
+            public void onFailure(Call<Void> call, Throwable t) {
                 current.reviewRequested = true;
             }
         });
     }
 
-    public int unread()
-    {
+    public int unread() {
         int n = 0;
         for (Note x : notes) if (!x.read) n++;
         return n;
