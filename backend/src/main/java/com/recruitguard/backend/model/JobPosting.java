@@ -31,6 +31,9 @@ public class JobPosting {
     @Column(updatable = false)
     private LocalDateTime submissionDate = LocalDateTime.now();
 
+    @Column(name = "review_requested", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
+    private boolean reviewRequested = false;
+
     public enum ScanType {
         text, url
     }
@@ -55,4 +58,7 @@ public class JobPosting {
 
     public LocalDateTime getSubmissionDate() { return submissionDate; }
     public void setSubmissionDate(LocalDateTime submissionDate) { this.submissionDate = submissionDate; }
+
+    public boolean isReviewRequested() { return reviewRequested; }
+    public void setReviewRequested(boolean reviewRequested) { this.reviewRequested = reviewRequested; }
 }
