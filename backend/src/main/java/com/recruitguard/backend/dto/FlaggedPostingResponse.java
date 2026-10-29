@@ -15,6 +15,10 @@ public class FlaggedPostingResponse {
     private List<ScanResponse.FlagDetail> flaggedIndicators;
 
     private String fullContent;
+    private boolean reviewRequested;
+
+    public boolean isReviewRequested() { return reviewRequested; }
+    public void setReviewRequested(boolean reviewRequested) { this.reviewRequested = reviewRequested; }
 
     public String getFullContent() { return fullContent; }
     public void setFullContent(String fullContent) { this.fullContent = fullContent; }

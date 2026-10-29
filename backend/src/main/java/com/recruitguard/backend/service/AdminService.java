@@ -40,15 +40,16 @@ public class AdminService {
         List<FlaggedPostingResponse> result = new ArrayList<>();
 
         for (JobPosting posting : postings) {
-            // Change B: skip postings that an admin has already reviewed
-            if (humanReviewRepository.existsByJobPostingPostingId(posting.getPostingId())) {
-                continue; // Skip already reviewed items
+            // Only show postings where the user requested a review and no admin has reviewed them yet
+            boolean reviewed = humanReviewRepository
+                    .existsByJobPostingPostingId(posting.getPostingId());
+            if (!posting.isReviewRequested() || reviewed) {
+                continue;
             }
 
             FraudScore score = fraudScoreRepository
                     .findByJobPostingPostingId(posting.getPostingId());
 
-            // Change A: show all risk levels, not only high_risk
             if (score != null) {
                 FlaggedPostingResponse response = new FlaggedPostingResponse();
                 response.setPostingId(posting.getPostingId());
@@ -61,14 +62,14 @@ public class AdminService {
                         : posting.getSourceUrl();
                 response.setContentPreview(preview);
 
-                // Change C: include the full posting text
+                // Full posting text for the admin review screen
                 response.setFullContent(posting.getContentText());
 
                 response.setRiskScore(score.getRiskScore());
                 response.setRiskLevel(score.getRiskLevel().name());
                 response.setSubmissionDate(posting.getSubmissionDate());
-                response.setReviewed(humanReviewRepository
-                        .existsByJobPostingPostingId(posting.getPostingId()));
+                response.setReviewed(reviewed);
+                response.setReviewRequested(posting.isReviewRequested());
 
                 List<FlaggedIndicator> indicators = flaggedIndicatorRepository
                         .findByFraudScoreScoreId(score.getScoreId());
@@ -114,8 +115,7 @@ public class AdminService {
         Notification notification = new Notification();
         notification.setUser(posting.getUser());
         notification.setJobPosting(posting);
-        notification.setMessage("Your job posting has been reviewed. Decision: "
-                + request.getFinalDecision() + ". " + request.getRecommendations());
+        notification.setMessage("Your job posting has been reviewed. Please check your scan history for details");
         notificationRepository.save(notification);
 
         return "Review submitted successfully";

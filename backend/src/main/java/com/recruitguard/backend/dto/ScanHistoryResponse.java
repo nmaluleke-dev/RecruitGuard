@@ -12,6 +12,12 @@ public class ScanHistoryResponse {
     private LocalDateTime submissionDate;
     private List<ScanResponse.FlagDetail> flaggedIndicators;
 
+    // Human review details
+    private boolean reviewRequested;
+    private boolean reviewed;
+    private String finalDecision;
+    private String recommendations;
+
     public ScanHistoryResponse(Integer postingId, String scanType,
                                String contentPreview, Integer riskScore,
                                String riskLevel, LocalDateTime submissionDate,
@@ -32,4 +38,16 @@ public class ScanHistoryResponse {
     public String getRiskLevel() { return riskLevel; }
     public LocalDateTime getSubmissionDate() { return submissionDate; }
     public List<ScanResponse.FlagDetail> getFlaggedIndicators() { return flaggedIndicators; }
+
+    public boolean isReviewRequested() { return reviewRequested; }
+    public void setReviewRequested(boolean reviewRequested) { this.reviewRequested = reviewRequested; }
+
+    public boolean isReviewed() { return reviewed; }
+    public void setReviewed(boolean reviewed) { this.reviewed = reviewed; }
+
+    public String getFinalDecision() { return finalDecision; }
+    public void setFinalDecision(String finalDecision) { this.finalDecision = finalDecision; }
+
+    public String getRecommendations() { return recommendations; }
+    public void setRecommendations(String recommendations) { this.recommendations = recommendations; }
 }
