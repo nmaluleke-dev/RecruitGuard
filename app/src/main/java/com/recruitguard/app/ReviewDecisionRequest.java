@@ -3,22 +3,26 @@ package com.recruitguard.app;
 import com.google.gson.annotations.SerializedName;
 
 public class ReviewDecisionRequest {
-    @SerializedName("scanId")
-    private String scanId;
-
-    @SerializedName("decision")
-    private String decision;
-
-    @SerializedName("adminName")
-    private String adminName;
+    @SerializedName("postingId")
+    private int postingId;
 
     @SerializedName("adminId")
     private int adminId;
 
-    public ReviewDecisionRequest(String scanId, String decision, String adminName, int adminId) {
-        this.scanId = scanId;
-        this.decision = decision;
-        this.adminName = adminName;
+    @SerializedName("finalDecision")
+    private String finalDecision;
+
+    @SerializedName("riskScore")
+    private int riskScore;
+
+    @SerializedName("recommendations")
+    private String recommendations;
+
+    public ReviewDecisionRequest(int postingId, int adminId, String finalDecision, int riskScore, String recommendations) {
+        this.postingId = postingId;
         this.adminId = adminId;
+        this.finalDecision = finalDecision;
+        this.riskScore = riskScore;
+        this.recommendations = recommendations;
     }
 }

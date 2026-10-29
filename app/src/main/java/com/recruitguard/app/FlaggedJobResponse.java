@@ -28,8 +28,14 @@ public class FlaggedJobResponse {
     @SerializedName("reviewed")
     private boolean reviewed;
 
+    @SerializedName("reviewRequested")
+    private boolean reviewRequested;
+
     @SerializedName("flaggedIndicators")
     private List<Indicator> flaggedIndicators;
+
+    @SerializedName("fullContent")
+    private String fullContent;
 
     public static class Indicator {
         @SerializedName("indicatorType")
@@ -54,7 +60,9 @@ public class FlaggedJobResponse {
     public String getScanType() { return scanType; }
     public String getSubmissionDate() { return submissionDate; }
     public boolean isReviewed() { return reviewed; }
+    public boolean isReviewRequested() { return reviewRequested; }
     public List<Indicator> getFlaggedIndicators() { return flaggedIndicators; }
+    public String getFullContent() { return fullContent; }
 
     public String getScanId() { return "CAS-" + postingId; }
     public String getUserName() { return "User #" + userId; }
@@ -78,7 +86,8 @@ public class FlaggedJobResponse {
         return contentPreview != null ? contentPreview : "Job Posting";
     }
 
-    public String getScannedContent() { return contentPreview; }
+    public String getScannedContent() {
+        return fullContent != null ? fullContent : contentPreview; }
     public String getSystemRisk() { return riskLevel != null ? riskLevel.replace("_", " ") : "unknown"; }
     public String getCreatedAt() { return submissionDate; }
 }

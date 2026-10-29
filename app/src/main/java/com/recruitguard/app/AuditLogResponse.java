@@ -32,4 +32,14 @@ public class AuditLogResponse {
     public String getDate() { return timestamp; }
     public String getDecision() { return finalDecision; }
     public String getRiskScoreText() { return riskScore + "%"; }
+
+    public void setAll(int auditId, int postingId, int riskScore, String finalDecision, String adminName, String timestamp) {
+        this.auditId = auditId;
+        this.postingId = postingId;
+        this.riskScore = riskScore;
+        this.finalDecision = finalDecision;
+        this.adminName = adminName;
+        this.timestamp = timestamp;
+    }
+
 }

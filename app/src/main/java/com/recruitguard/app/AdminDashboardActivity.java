@@ -28,7 +28,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
     private Button btnFilterAll, btnFilterLowRisk, btnFilterHighRisk;
     private TextView tvWelcomeAdmin;
     private List<FlaggedJobResponse> allJobs = new ArrayList<>();
-    private List<FlaggedJobResponse> unreviewedJobs = new ArrayList<>();
+    private List<FlaggedJobResponse> reviewRequests = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +77,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
             intent.putExtra("system_risk", job.getSystemRisk());
             intent.putExtra("risk_score", job.getRiskScore());
             intent.putExtra("posting_id", job.getPostingId());
+            intent.putExtra("full_content", job.getFullContent());
 
             ArrayList<String> indicators = new ArrayList<>();
             if (job.getFlaggedIndicators() != null) {
@@ -108,7 +109,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        fetchFlaggedJobs(); // Refresh when returning from review
+        fetchFlaggedJobs();
     }
 
     private void fetchFlaggedJobs() {
@@ -118,11 +119,11 @@ public class AdminDashboardActivity extends AppCompatActivity {
             public void onResponse(Call<List<FlaggedJobResponse>> call, Response<List<FlaggedJobResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     allJobs = response.body();
-                    // Filter to show only unreviewed items
-                    unreviewedJobs.clear();
+                    // Filter: Only show items where review was requested AND not yet reviewed
+                    reviewRequests.clear();
                     for (FlaggedJobResponse job : allJobs) {
-                        if (!job.isReviewed()) {
-                            unreviewedJobs.add(job);
+                        if (!job.isReviewed() && job.isReviewRequested()) {
+                            reviewRequests.add(job);
                         }
                     }
                     filterJobs("all");
@@ -141,21 +142,20 @@ public class AdminDashboardActivity extends AppCompatActivity {
     private void filterJobs(String filter) {
         List<FlaggedJobResponse> filtered = new ArrayList<>();
 
-        // Use unreviewedJobs as the base list
         if (filter.equals("low")) {
-            for (FlaggedJobResponse job : unreviewedJobs) {
+            for (FlaggedJobResponse job : reviewRequests) {
                 if (job.getRiskLevel().equalsIgnoreCase("low_risk")) {
                     filtered.add(job);
                 }
             }
         } else if (filter.equals("high")) {
-            for (FlaggedJobResponse job : unreviewedJobs) {
+            for (FlaggedJobResponse job : reviewRequests) {
                 if (job.getRiskLevel().equalsIgnoreCase("high_risk")) {
                     filtered.add(job);
                 }
             }
         } else {
-            filtered = new ArrayList<>(unreviewedJobs);
+            filtered = new ArrayList<>(reviewRequests);
         }
 
         adapter.updateData(filtered);
