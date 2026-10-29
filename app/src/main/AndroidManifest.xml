@@ -56,7 +56,7 @@
 
         <!-- Job Seeker Activities -->
         <activity android:name=".jobseeker.HomeActivity" android:exported="false" />
-        <activity android:name=".ResultActivity" android:exported="false" />
+        <activity android:name=".jobseeker.ResultActivity" android:exported="false" />
         <activity android:name=".jobseeker.HistoryActivity" android:exported="false" />
         <activity android:name=".jobseeker.NotificationsActivity" android:exported="false" />
 
