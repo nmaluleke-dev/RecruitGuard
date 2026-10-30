@@ -25,19 +25,19 @@ public class SignUpActivity extends AppCompatActivity
     private Button signUpButton;
     private TextView signInLink;
     private String[] securityQuestions =
-    {
-        "Select a security question",
-        "What is your mother's maiden name?",
-        "What was the name of your first pet?",
-        "What city were you born in?",
-        "What is your favorite food?",
-        "What was the name of your first school?",
-        "What is your childhood best friend's name?",
-        "What was the make of your first car?",
-        "What is your favorite movie?",
-        "What street did you grow up on?",
-        "What is your favorite book?"
-    };
+            {
+                    "Select a security question",
+                    "What is your mother's maiden name?",
+                    "What was the name of your first pet?",
+                    "What city were you born in?",
+                    "What is your favorite food?",
+                    "What was the name of your first school?",
+                    "What is your childhood best friend's name?",
+                    "What was the make of your first car?",
+                    "What is your favorite movie?",
+                    "What street did you grow up on?",
+                    "What is your favorite book?"
+            };
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -60,6 +60,10 @@ public class SignUpActivity extends AppCompatActivity
         signUpButton = findViewById(R.id.signUpButton);
         signInLink = findViewById(R.id.signInLink);
 
+        // Start with the password hidden (dots) and the closed eye icon
+        passwordInput.setTransformationMethod(android.text.method.PasswordTransformationMethod.getInstance());
+        passwordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_off, 0);
+
         // Password visibility toggle
         passwordInput.setOnTouchListener(new View.OnTouchListener()
         {
@@ -78,15 +82,15 @@ public class SignUpActivity extends AppCompatActivity
 
                         if (passwordInput.getTransformationMethod() instanceof android.text.method.PasswordTransformationMethod)
                         {
-                            // Show Password & Switch to Eye Off Icon
+                            // Show password and switch to the open eye icon
                             passwordInput.setTransformationMethod(null);
-                            passwordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_off, 0);
+                            passwordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_open, 0);
                         }
                         else
                         {
-                            // Hide Password & Switch to Open Eye Icon
+                            // Hide password and switch to the closed eye icon
                             passwordInput.setTransformationMethod(android.text.method.PasswordTransformationMethod.getInstance());
-                            passwordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_open, 0);
+                            passwordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_off, 0);
                         }
 
                         // Restore cursor position
@@ -114,7 +118,7 @@ public class SignUpActivity extends AppCompatActivity
 
             @Override
             public View getDropDownView(int position, View convertView, android.view.ViewGroup parent)
-                {
+            {
                 View view = super.getDropDownView(position, convertView, parent);
                 TextView text = (TextView) view.findViewById(android.R.id.text1);
                 text.setTextColor(Color.BLACK);

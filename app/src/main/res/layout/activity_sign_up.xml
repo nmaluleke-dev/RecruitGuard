@@ -85,7 +85,7 @@ android:windowSoftInputMode="adjustPan">
         android:inputType="textPassword"
         android:padding="16dp"
         android:textColor="#000000"
-        android:drawableEnd="@drawable/ic_eye_off"
+        android:drawableEnd="@drawable/ic_eye_open"
     />
 
     <!-- Security Question -->

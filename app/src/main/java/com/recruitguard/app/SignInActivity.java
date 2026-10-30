@@ -40,6 +40,10 @@ public class SignInActivity extends AppCompatActivity
         signUpLink = findViewById(R.id.signUpLink);
         forgotPasswordLink = findViewById(R.id.forgotPasswordLink);
 
+        // Start with the password hidden (dots) and the closed eye icon
+        passwordInput.setTransformationMethod(android.text.method.PasswordTransformationMethod.getInstance());
+        passwordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_off, 0);
+
         // Password visibility toggle
         passwordInput.setOnTouchListener(new View.OnTouchListener()
         {
@@ -58,15 +62,15 @@ public class SignInActivity extends AppCompatActivity
 
                         if (passwordInput.getTransformationMethod() instanceof android.text.method.PasswordTransformationMethod)
                         {
-                            // Show Password & Switch to Eye Off Icon
+                            // Show password and switch to the open eye icon
                             passwordInput.setTransformationMethod(null);
-                            passwordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_off, 0);
+                            passwordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_open, 0);
                         }
                         else
                         {
-                            // Hide Password & Switch to Open Eye Icon
+                            // Hide password and switch to the closed eye icon
                             passwordInput.setTransformationMethod(android.text.method.PasswordTransformationMethod.getInstance());
-                            passwordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_open, 0);
+                            passwordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_off, 0);
                         }
 
                         // Restore cursor position

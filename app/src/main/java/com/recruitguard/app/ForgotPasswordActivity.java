@@ -31,19 +31,19 @@ public class ForgotPasswordActivity extends AppCompatActivity
 
     // security questions
     private String[] securityQuestions =
-    {
-        "Select your security question",
-        "What is your mother's maiden name?",
-        "What was the name of your first pet?",
-        "What city were you born in?",
-        "What is your favorite food?",
-        "What was the name of your first school?",
-        "What is your childhood best friend's name?",
-        "What was the make of your first car?",
-        "What is your favorite movie?",
-        "What street did you grow up on?",
-        "What is your favorite book?"
-    };
+            {
+                    "Select your security question",
+                    "What is your mother's maiden name?",
+                    "What was the name of your first pet?",
+                    "What city were you born in?",
+                    "What is your favorite food?",
+                    "What was the name of your first school?",
+                    "What is your childhood best friend's name?",
+                    "What was the make of your first car?",
+                    "What is your favorite movie?",
+                    "What street did you grow up on?",
+                    "What is your favorite book?"
+            };
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -65,6 +65,12 @@ public class ForgotPasswordActivity extends AppCompatActivity
         newPasswordInput = findViewById(R.id.newPasswordInput);
         confirmPasswordInput = findViewById(R.id.confirmPasswordInput);
         resetPasswordButton = findViewById(R.id.resetPasswordButton);
+
+        // Start with both password fields hidden (dots) and the closed eye icon
+        newPasswordInput.setTransformationMethod(android.text.method.PasswordTransformationMethod.getInstance());
+        newPasswordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_off, 0);
+        confirmPasswordInput.setTransformationMethod(android.text.method.PasswordTransformationMethod.getInstance());
+        confirmPasswordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_off, 0);
 
         // Spinner with questions
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, securityQuestions)
@@ -111,15 +117,15 @@ public class ForgotPasswordActivity extends AppCompatActivity
 
                         if (newPasswordInput.getTransformationMethod() instanceof android.text.method.PasswordTransformationMethod)
                         {
-                            // Show Password & Switch to Eye Off Icon
+                            // Show password and switch to the open eye icon
                             newPasswordInput.setTransformationMethod(null);
-                            newPasswordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_off, 0);
+                            newPasswordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_open, 0);
                         }
                         else
                         {
-                            // Hide Password & Switch to Open Eye Icon
+                            // Hide password and switch to the closed eye icon
                             newPasswordInput.setTransformationMethod(android.text.method.PasswordTransformationMethod.getInstance());
-                            newPasswordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_open, 0);
+                            newPasswordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_off, 0);
                         }
 
                         newPasswordInput.setSelection(selectionStart, selectionEnd);
@@ -147,15 +153,15 @@ public class ForgotPasswordActivity extends AppCompatActivity
 
                         if (confirmPasswordInput.getTransformationMethod() instanceof android.text.method.PasswordTransformationMethod)
                         {
-                            // Show Password & Switch to Eye Off Icon
+                            // Show password and switch to the open eye icon
                             confirmPasswordInput.setTransformationMethod(null);
-                            confirmPasswordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_off, 0);
+                            confirmPasswordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_open, 0);
                         }
                         else
                         {
-                            // Hide Password & Switch to Open Eye Icon
+                            // Hide password and switch to the closed eye icon
                             confirmPasswordInput.setTransformationMethod(android.text.method.PasswordTransformationMethod.getInstance());
-                            confirmPasswordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_open, 0);
+                            confirmPasswordInput.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_eye_off, 0);
                         }
 
                         confirmPasswordInput.setSelection(selectionStart, selectionEnd);
